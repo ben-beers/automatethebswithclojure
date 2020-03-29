@@ -1,0 +1,111 @@
+Fundamentally, computation is about input and output. You give the computer something, and it gives you something else back. The input is whatever you give the computer, and the output is what you get back. Nearly everything about computers is a means to this end: a keyboard is a means of input, a monitor is a means of output, a mouse is a means of input, speakers are a means of output. Software is there to help you enter inputs more effectively and to give you different kinds of output. And within each piece of software, every piece of code receives inputs, usually from other pieces of code, and sends outputs elsewhere. Your wifi router sends output and receives input.
+
+The most basic means of I/O is through logic, which in most programming languages is implemented by means of something called flow control. Flow control takes an input and decides what to do with it using logical statements and comparisons.
+
+There are three keys to this: boolean values, boolean operators, and comparison operators. Boolean values are the simple values "true" and "false," and are yielded by boolean operators and comparison operators. Boolean operators are logical connectives such as if, else, and and. For example, (if (even? 2) "even") returns the string "even" if the number 2 is an even number, which it is. If, instead, you pass a variable to this function and say (if (even? x) "even") then the function will return "even" if and only if x is an even number. The "even?" operator in Clojure is a comparison operator, which returns true if the number that follows it is even.
+
+The if statement is the basic flow control operator of clojure. We can invoke it as follows:
+
+(if (== 3 3) "true")
+
+or
+
+(if (== 3 3) "true" "false")
+
+Both functions will return true. The expression, (== a b) evaluates whether or not a is equal to b. If we pass the same number in both places, rather than using variables, it will always return true. Thus, the statement (if (== 3 3)) will always return true, because what is inside that nested set of parenthesis is the condition that is passed to the if operator for evaluation. The last value, a string containing the word "true", will be returned because the if statement is true. In the second line, the second string, "false", constitutes the "then branch" of the if statement. Ordinarily, that line of code will always return the string, "true". however, if we change it slightly, it will activate the then branch of the if statement:
+
+(if (== 3 4) "true" "false"))
+
+will always return the string "false" because 3 does not equal four. We can abstract this by noting that
+
+(if (boolean expression) then else)
+
+if the (boolean expression) returns true, the expression that replaces "then" will be returned. Otherwise, it will return whatever expression replaces else, if there is one.
+
+An expression having the above form, however, can only execute a single expression in place of the "then" and another expression in place of the "else". If we want our if expression to do multiple things for each branch, then we use do statements, thusL
+
+(if (boolean expression)
+
+	do(
+	(thenA)
+	(thenB)
+	(thenC)
+	)
+
+	do(
+	(elseA)
+	(elseB)
+	(elseC)
+	))
+
+The first do block, consisting of then statements, contains a list of statements to be executed if the boolean expression evaluates to true. The second do block, consisting of else statements, contains a list of expressions to be executed should the boolean expression evaluate to false. This may look complicated, but it's really quite simple once grasped. The "if" construction is saying, "If this is true, then do A. If it's not true, then do B." The if-do construction is saying, "If this is true, then do A1, B1, and C1. Otherwise, do A2, B2, and C2."
+
+The "when" operator is not really logically distinct from if, and its presence, more than anything, is a kind of syntactic sugar to make it easier to WRITE in Clojure. The when operator is merely the if operator without the else option. So we write"
+
+(when (boolean expression)
+	(stuff happens))
+
+The reason we use "when" this way is that, in the cases where we want an if statement without an else, and where we want the if statement to do multiple things, we would ordinarily have to write something like this:
+
+(if (boolean expression)
+	(do
+	(stuff)
+	(more stuff)
+	(even more stuff))
+)
+
+And in such a case, the "do" is basically superfluous. It would be much easier to write if we could do it in such a way that there were no "if" statement and we could just have a boolean expression into an operator with a body of statements to be executed. That's where the "when" construction comes in handy.
+
+The cond ("condition") operator, by contrast, is logically distinct from the if operator in that it is not logically bivalent. That is to say, it accomodates more sophisticated functionality than "if this is true do these ten things and otherwise execute some other list of things." Instead, the cond operator tests an input against a set of conditions. As soon as the input matches one of those conditions, the cond operator returns a result for that condition. For example, suppose we take a variable, x, for input, and suppose further that x is an integer. The cond construction would look like this:
+
+(let [x 9]
+	(cond
+	(< x 2) "x is less than 2"
+	(< x 3) "x is 2"
+	(< x 8) "x is less than 8"
+	(== x 8) "x is 8"
+	(> x 8) "x is greater than 8"))
+
+The parenthetical expressions you see under the cond keyword are a series of tests. For example, the (< x 2) tests if x is less than 2, and returns "x is less than 2" if so. If the first test returns false, then the second test is applied, and so on. Once one of the tests returns true, the cond expression terminates. This is logically distinct from the if statement in its ability to return more than two outputs (if/else), although it's still based on a simple boolean test, or series of them.
+
+Note that the cond statement, like the if statement, admits of an "else" clause, which we can take advantage of thus:
+
+(let [x 9]
+	(cond
+	(< x 2) "x is less than 1"
+	(== x 5) "x is 5"
+	:else "x is greater than 5"))
+
+The else condition here is slightly different from the is-greater-than test. The difference is that the cond operator can use boolean tests of a non-arithmetic nature, e.g. comparing strings.
+
+That's enough flow control for now. We can now begin defining some variables. The simples way to do this is like so:
+
+(let [x 4])
+
+which assigns x to be a double, namely, 4. Clojure runs on the JVM and the interpreter is smart enough to know that (let [x 4]) is defining x as a double. Similarly, (let [x 4.0]) defines x as a double, and the interpreter is, again, smart enough to know that x is a double in this context. If you want to define a string, you can do it like so:
+
+(def x "This is a string!")
+
+Typing x into the interactive shell and then pressing enter will yield the original string, "This is a string!"
+
+If you want to know the type of a variable, you can use the type operator. This is accomplished thus:
+
+(type thingYouWantToKnowTheTypeOf)
+
+which will return the type of the object. So if you type (def x "This is a string!") and then run (type x), the interactive shell will return "String". If you then redefine x by typing (def x 10) and run (type x) again, the interpreter will return "Long".
+
+Variables can be inputs and outputs for flow control expressions. If we put together some flow control expressions in a structured way, we can use them to define functions, the bread and butter of programming in Clojure. This is done as follows:
+
+(defn nameOfFunction [inputToFunctionAKAParameter] (stuff the function does))
+
+We use the defn keyword to let Clojure know that we're creating a function, give the function a name that can be used to call the function later, define how many inputs go into the function and what their names are, and then define what the function will do with the inputs it is given. The simplest function we could define, or one of the simplest, would be as follows:
+
+(defn foo [barThis] (str barThis "bar"))
+
+which prints out whatever is passed to the function in the parameter barThis with "bar" appended to the end. If, after defining the function thus, we type this:
+
+(foo "fu")
+
+it will return "fubar". If we type (foo 5), the long 5 will be cast as a string so that it can be concatenated with "bar" because we cast it as a string by typing "str" in the function body. An astute reader will have noted that the "defn" keywork is very similar to the "def" keyword. In fact, it helps to think of it as a contraction of two keywords: "def" and "fn."
+
+The "fn" keyword can create an anonymous function on the fly. This anonymous function cannot be referred to later because it has no name, i.e. is anonymous. Generally, we would only create a function this way if we were going to immediately pass it to another function for use. The "def" keyword, conversely

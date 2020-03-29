@@ -1,0 +1,169 @@
+To begin with, you'll want to install Clojure. Clojure runs on the JVM, which means we'll be installing Java first. What dependencies Clojure has will depend heavily on what OS you're running. The rest of this chapter will assume that you're running Linux. In particular, we're assuming that you're running some flavor of Ubuntu. A Debian-based or other distro may have slightly different requirements.
+
+The dependencies for Clojure in this context are bash, curl, rlwrap, and Java itself. the sudo apt-get install command should suffice to install most of these on most Linux distributions. If that doesn't work, try running sudo apt-get update first, and then installing. Any further troubleshooting will depend on what version/distro of Linux you are working with.
+
+Once everything has been installed, you can begin playing with Clojure by typing clj into your terminal. This initiates a REPL for closure. REPL stands for Read, Evaluate, Print, Loop. This is a very fancy way of saying that we have initiated an interactive shell for Clojure. What that means is that we can type in stuff from the Clojure language and see output in real time. We can type in functions, literals, commands, and so on, and watch the interpreter do stuff in real time. It is very similar to Python's interactive shell. The "read" part of REPL is where the interpreter reads our input that we type in at the command line. The Evaluate part of REPL is where the interpreter evaluates that input to produce output for us. The Print part of REPL is where the interpret takes the output and displays it on the command line. REPL: Read, Evaluate, Print, Loop.
+
+Once we have the REPL open, we can mess with Clojure a little in order to see what various commands do and how the interpreter responds to different stuff from the Clojure language. You can begin by typing in some literals, such as 42, 42.0, "String", and so on. You will notice that literals evaluate to themselves, i.e the interpreter prints out whatever literal it was given as input.
+
+Now for some basic commands. If you type,
+
+(count"word")
+
+then the interpreter will READ this as passing the string literal "word" to the count function. The count function returns the number of items in a collection, such as an array or list, and the string "word" for this purpose is a collectionwith four elements (the letters w, o, r, and d). Once the input is thus read, the interpreter will EVALUATE the count function with the argument "word" and find that it returns the number 4. Then it will PRINT the result and output 4. Finally, the interpreter will loop back and await another input.
+
+This is also a good opportunity to learn about functions in two arguments in Clojure. Enter the following commands into your terminal:
+
+(+ 2 3)
+(+ 5 7)
+(* 11 13)
+(* 17 19)
+(- 29 23)
+(- 31 29)
+
+Study the outputs of these functions, and you will shortly intuit how they work. They are basic arithmetic operators: (+ 2 3), for example, returns 5 since 2+3=5, and (* 11 13) returns 143 since 11*13 = 143.. While Clojure does have an order of operations, it is advisable to use parentheses properly rather than relying on order of operations to execute things correctly. Also note that operations are composable. Typing
+
+(+ (+ 2 3) (+ 5 7))
+
+Will add two and three, then add five and seven, and then add those two sums to return 21. Accordingly, we could also write:
+
+(* (- 19 17) (+ 11 7))
+
+which will evaluate to 36.
+
+We can also increment and decrement values using the inc and dec functions, respectively. These are included with Clojure. So if we type the following into the interactive shell/REPL:
+
+(inc 5)
+(dec 7)
+
+they will both return six. inc 5 is the same as 5+1 (which = 6) and dec 7 is the same as 7-1 which = 6. The modulus, which is normally used with the % symbol in languages like Java and Python, is here invoked using the mod operator, like so:
+
+(mod 13 11)
+
+where it returns two.
+
+There are also tests in clojure, which return a boolean value (true or false). Typing
+
+(neg? 41)
+
+into the interactive shell will return false because 41 is not a negative number. Other tests include number? and decimal?, among many others.
+
+Two strings, or sequences of various other kinds, can be added together using the concat command, thus:
+
+(concat ("string one and " "string two"))
+
+which returns the sequence: 
+(\s \t \r \i \n \g \space \o \n \e \space \a \n \d \space \s \t \r \i \n \g \space \t \w \o)
+
+This is a lazysequence, which is a concept we ought to understand before proceeding any further with Clojure. A sequence is a sort of metatype, or a family of related types in Clojure. Rouhgly, you can think of a sequnce as any data type where you have a collection of different things that all lie in a specific order. This is distinct from sets in Python or Java, which are unordered collections. A sequence is a collection with a notion of ordering, meaning a collection with elements that are, so-to-speak, "lined up," as opposed to an unordered grab-bag like a Python set.
+
+In most languages, sequences are data structures. That is to say, the whole sequence exists somewhere in memory. Clojure has sequences like that, too, but it ALSO has so-called lazy sequences. A lazy sequence is an object that contains a function. That function returns the value at a given place in the sequence, and also returns a function that returns the next value in the sequence.
+
+Let there be a function called "first." Let that function be such that it returns the first value in a sequence, such as a list. Calling first on a traditional sequence would return the first item in the sequence. So far, so good. Now, let's say that we call first on a lazy sequence. Doing so would call a second function - call it f2. f2 returns two things: a value, corresponding to the first value in the notional sequence (which does not concretely exist in memory) and a third function, f3. Invoking f3 would return the second item in the list, and a fourth function, f4. Invoking f4 would return the third item as well as a fifth function, f5.
+
+If the reader is confused by this description, then that is understandable. Looking so closely at a process like this can make it seem more complicated than it really is. But take heart: the concept, once grasped, is quite simple, for all that it can be daunting to contemplate at first.
+
+Let there be a function called "nth," which is meant to return the nth term in a sequence. For an ordinary sequence data type, this is precisely what it does. For a lazy sequence, however, it calls first, which returns f2 and a value. It calls f2 so that f2 returns a value and f3, and then calls f3. It continues this process until it calls f(n-1), at which point it takes the value that f(n-1) returns, which will be the nth value.
+
+If this is all still confusing, then let the reader direct their attention to this table. The left-hand column shows the names of the functions, the arrow may be pronounced "returns," and the right-hand column shows what each function returns.
+
+first => (a, f2)
+f2 => (b, f3)
+f3 => (c, f4)
+f4 => (d, f5)
+f5 => (e)
+
+So if we want to see what value lies at the final index, we call first. Then, we take whatever function first returns - in this case, f2 - and call it. Then, we take whatever function THAT returns (f4) and call it. We continue this until we get a function that returns only a value and not another function, at which point we know that we have reached the end of the chain, since there is no longer a function that bridges to next list index. It is important to understand that each function in the change does not exist anywhere in memory until it is returned by its preceding function. 
+
+The point of this is to allow Clojure to remain a strictly functional language. That is to say, lazy sequences allow us to process things in ways that would ordinarily require us to mutate the state of various objects, which means that lazy sequences can allow us to accomplish the same tasks as object-oriented programmers without doing any object-oriented programming.
+
+It would be a disservice to the reader to enumerate every operation in Clojure. From here, we will focus on accomplishing specific tasks, and learning whatever operations are necessary to accomplish those tasks. The reader is encouraged to visit clojure.org/api/cheatsheet (or some other set of Clojure docs) and experiment with the various operations and functions defined there using the interactive shell.
+
+Do not be discouraged or intimidated by the number of functions you find there. Using the interactive Clojure shell for basic arithmetic operations is fundamentally not different from using a graphing calculator or a spreadsheet program.
+
+We can define variables using the def keyword, like so:
+
+(def x 10)
+(def newstr "word, yo")
+(def y (- 5 2))
+
+If x is typed after entering the first command, the interpreter will output 10. If y is typed, the interpreter will output 3, since 5-2 = 3 and we have assigned the output of that operation to the variable y. If newstr is typed, it will evaluate to "word, yo". Clojure is smart enough to know what the types of these variables are, and you can see this for yourself by typing:
+
+(type x)
+(type newstr)
+(type y)
+
+Now that we can define variables and have acquired some semblance of understanding of Clojure's design philosophy via our excursion into lazy sequences, we are ready to learn the basics of flow control in Clojure.
+
+First, the if statement. As in other languages, the if statement is a conditional. If a certain statement is true, then the if statement will do something, with an optional "else" condition. A very basic if statement is as follows:
+
+(if true "True!")
+
+Note that this also works if we type something like (if [] "True!") because even empty sequences are considered "true in Clojure. In fact, everything in Clojure is considered true, except for the boolean false and the "nil" value.
+
+Which will always return "True!" in the interpreter because the "if true" condition is always true. For something a bit more sophisticated:
+
+(if (odd? 3) "True!")
+
+The odd? operator will return true if it is followed by an odd number. Otherwise, it will return false. Since 3 is odd, this functino returns "True!" in the shell. Else conditions can be implicit in Clojure, and there are multiple ways to use them, as we shall see momentarily. For the time being, we invoke them thus:
+
+(if (even? 3) "True!" "No! Filthy, filthy lies!")
+
+This induces the interpreter to scold us for our dishonesty by returning "No! Filthy, filthy lies!". This is because the second expression after the if statement is considered an else condition implicitly.
+
+Also note that the if statement admits only one condition, represented by odd? and even? in the last two examples. If we want a more complex conditional flow control, we have to use the do statement, thus:
+
+(if (even? 3)
+  (do (println "even")
+      true)
+  (do (println "odd")
+      false))
+
+When statements are another flow control tool. Rather than making the conditional logic of the statement more complex, they simplify the conditional part and make it syntactically easier to write more complex commands. For example, this:
+
+(when (odd? x)
+(println "This is an odd number")
+(inc x))
+
+will print out an odd number (if x is, indeed, an odd number) and then increment x. So if we set x equal to three and then execute this expression, we will see "This is an odd number" followed by the number 4, which is what is returned by the command (inc x).
+
+The cond flow control tool tests a number of conditions. The first condition found to be true is executed. 
+
+(let [n 5]
+(cond
+(< n 4) "n is less than four"
+(< n 10) "n is less than ten"))
+
+In this case, the interpeter will return "n is less than ten" because n does not satisfy the first condition of n<4. Note that each of the parenthetical conditions given, (< n 4) and (< n 10), return booleans, respectively false and true. If, however, we run the same code while setting n to 3:
+
+(let [n 3]
+(cond
+(< n 4) "n is less than four"
+(< n 10) "n is less than ten"))
+
+Then the interpreter will return "n is less than four". The interpreter will NOT return "n is less than ten" afterward because the expression terminates when the first condition is tripped.
+
+The case flow control tool is useful for checking for specific values. Consider the following:
+
+(defn foo [n]
+(case n
+100 "n = 100"
+2 "n = 2"))
+
+If we define the function foo this way and then run the command
+
+(foo 2)
+
+We will see "n = 2". Running
+
+(foo 100)
+
+Will show us "n = 100". Any other number will return nothing.  particular construction admits of an implicit else statement, thus:
+ [n]
+(case n
+100 "n = 100"
+2 "n = 2"
+"n is neither 2 nor 100"))
+
+This will return "n is neither 2 nor 100" whenever n does not satisfy either of the prior two cases, i.e. 100 or 2.
+
