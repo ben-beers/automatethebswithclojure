@@ -1,0 +1,2 @@
+# automatethebswithclojure
+A book
