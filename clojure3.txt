@@ -1,0 +1,79 @@
+The reduce function is quite useful because it obviates the need to loop over sequences for certain kinds of operator. For example, suppose you wated to sum every value in a list, like this:
+
+(list 2 3 5 7 11 13 17 19)
+
+The most primitive way to do this, by hardcoding, is composition of addition functions:
+
+(+ (+ (+ (+ (+ (+ (+ 2 3) 5) 7) 11) 13) 17) 19)
+
+This, of course, is not something we would ever write into a program. Perhaps we might write this in a REPL, in order to demonstrate how function composition works. More usefully, we could define a function:
+       
+(defn sum-up [list-to-sum]
+	(def a (atom 0))
+	(for [x list-to-sum]
+		(swap! a + x)
+	)
+)
+
+This is, of course, a very clumsy function that returns a list of values, with each list being another term in the summation series. For (list 2 3 5 7 11 13 17 19) it returns the series (2 5 10 17 28 41 58 77), where the last term in the list is te sum of the list that was passed to the function as an argument.
+
+The reduce function bypasses all this. What the reduce function does is apply an operation to the first two terms in a list. Call the result of that operation, a. The reduce function then applies the operation to a and the third term in the list; call the result of that, b. The reduce functino then applies the operation to b and the fourth term in the list, and so on, until all terms have been used. The following diagram will make this clear:
+
+
+(reduce + [2 3 5 7 11 13 17 19])
+
+The reduce function applies the + operator recursively thus:
+
+[2   3 5  7 11 13 17 19]
+ |  / /  /  /  / /  /
+ 2 3 /  /  /  / /  /
+ |/ /  /  /  / /  /
+ 5 5  /  /  / /  / 
+ |/  /  /  / /  /
+ 10 7  /  / /  /
+ | /  /  / /  /
+ 17 11  / /  /
+ | /   / /  /
+ 28  13 /  /
+ |  /  /  /
+ 41  17  /
+ |   /  /
+ |  /  / 
+ | /  / 
+ 58  19
+ |  /
+ | /
+ 77
+
+2 and 3 are added to make 5. The third term in the list is 5, which gets added to create 10. The fourth term is 7, which gets added to create 17. The fifth term 11, which gets added to 17 to make 28. This continues recursively until everything as been summed.
+
+This is applicable to operations besides addition, of course. The (conj) operation conjoins two collections. When applied to lists, this results in the second argument being adjoined to the BEGINNING of the first. So (conj (list "a" "b") "c") => (list "c" "a" "b"). Accordingly, if we use (reduce conj () (list 1 2 3 4 5)) then we get the list (5 4 3 2 1). A moment's reflection will show why: () is an empty list, so the reduce function is adding each term in the new to the beginning of the empty list. For (1 2 3), the result looks like this:
+				
+()	1      2	3
+|      /      /        /
+|     /      /        /
+|    /      /        /
+|   /      /        /
+|  /      /        /
+| /      /        /
+(1)     /	 /
+ |     /	/
+ |    /        /
+ |   /        /
+ |  /        /
+  \/        /
+  /\       /
+ (2 1)    /
+  \   \  /
+   \   \/
+    \  /\
+     \/  | 
+     /\  |  
+    /  | |
+   /  /  |
+  /  /  /
+(3  2  1)
+
+
+
+
