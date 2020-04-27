@@ -1,6 +1,217 @@
-1.
-To begin with, you'll want to install Clojure. Clojure runs on the JVM, which means we'll be installing Java first. What dependencies Clojure has will depend heavily on what OS you're running. The rest of this chapter will assume that you're running Linux. In particular, we're assuming that you're running some flavor of Ubuntu. A Debian-based or other distro may have slightly different requirements. On a WIndows install, you will want to set up a Linux virtual machine to install Clojure on. If you just want to experiment with the REPL without actually writing full-length programs, repl.it has an in-browser Clojure REPL that you can use.
+To begin with, you'll want to install Clojure. Clojure runs on the JVM, which means we'll be installing Java first. What dependencies Clojure has will depend heavily on what OS you're running. The rest of this chapter will assume that you're running Linux. In particular, we're assuming that you're running some flavor of Ubuntu. A Debian-based or other distro may have slightly different requirements. On a Windows install, you will want to set up a Linux virtual machine to install Clojure on. If you just want to experiment with the REPL without actually writing full-length programs, repl.it has an in-browser Clojure REPL that you can use.
 The dependencies for Clojure in this context are bash, curl, rlwrap, and Java itself. the sudo apt-get install command should suffice to install most of these on most Linux distributions. If that doesn't work, try running sudo apt-get update first, and then installing. Any further troubleshooting will depend on what version/distro of Linux you are working with.
 Once everything has been installed, you can begin playing with Clojure by typing clj into your terminal. This initiates a REPL for closure. REPL stands for Read, Evaluate, Print, Loop. This is a very fancy way of saying that we have initiated an interactive shell for Clojure. What that means is that we can type in stuff from the Clojure language and see output in real time. We can type in functions, literals, commands, and so on, and watch the interpreter do stuff in real time. It is very similar to Python's interactive shell. The "read" part of REPL is where the interpreter reads our input that we type in at the command line. The Evaluate part of REPL is where the interpreter evaluates that input to produce output for us. The Print part of REPL is where the interpret takes the output and displays it on the command line. REPL: Read, Evaluate, Print, Loop.
 Once we have the REPL open, we can mess with Clojure a little in order to see what various commands do and how the interpreter responds to different stuff from the Clojure language. You can begin by typing in some literals, such as 42, 42.0, "String", and so on. You will notice that literals evaluate to themselves, i.e the interpreter prints out whatever literal it was given as input.
-2.
+
+The REPL will be our tool early on because it allows us to type in commands and try different things. You will remember these things much better if you actually do them instead of just reading about them. Much as a pianist will remember a scale much better if they sit down and actually play that scale, a software developer who employs the concepts that they are learning will retain those concepts much better than if they merely read about them.
+
+To begin with, we'll start with the arithmetic operations, since these are the easiest and most basic operations. Open up your REPL and type this:
+
+(+ 1 1)
+
+And press enter. If you do so, the program will return,
+
+=> 2.
+
+What happened? Right of the bat, this looks a little different from the math you saw in school. Ordinarily, in your school mathemetics, the plus sign, as well as other OPERATORS such as the division and multiplication signs, went between numbers. But here, those operators go at the beginning, and the whole thing is enclosed in parentheses. What's going on here!?
+
+To begin with, everything in Clojure is a function. Whenever you enclose something in between those two parentheses, you're not just categorizing it the way you do in algebra. Rather, every set of parentheses CALLS a function. That means that those parentheses say to Clojure, "Hey, you! See these parentheses? There's a function inside of here, which is a set of instructions for you to follow. Look inside of these parentheses and execute this function!" Every set of parentheses in Clojure is a function call. Functions in Clojure, as stated, are a set of operations or instructions, and zero or more ARGUMENTS. Think of the instructions and operations as a machine, and think of the arguments as a set of things that you put into one end of that machine. What comes out the other end of the machine is the result of applying those instructions to that argument. So when you type (+ 1 1), you're taking the plus + operation and feeding it two integers, 1 and 1, and having it add those together. The integers are the arguments to the function, and the function itself, in this case, consists of adding the arguments together.
+
+Another difference between the operations you learned in school and the operations in Clojure, besides just the order you write them in, is how many arguments they can take. In school, you wrote addition like this: 1 + 1, and the result like this: = 2.The addition you learned in school is a "binary operation" or an operation that operates on two things, in this case the numbers on the left and right. Clojure addition, however, is not limited in this way. In Clojure, addition can operate on as many things as you want! So you can try typing the following into your REPL:
+
+(+ 2 3)
+(+ 3 5 7)
+(+ 7 5 3)
+(+ 7 11 13 17 19 23)
+(+ 31)
+(+)
+
+And notice what happens. No matter how many arguments you put in, the addition operator will faithfully gather them all up and add them all together. And this works for all of the arithmetic operators, which are as follows:
+
++
+-
+/
+
+These are addition, subtraction, and multiplication. There is no exponentiation symbol in Clojure, although there are, of course, ways to crete an exponentiation function, which we shall learn about later. To see how subtraction pans out, try the following:
+
+(- 10 5)
+(- 5 10)
+(- 1 2)
+(- 2 1)
+(- 2 3 5 7 11)
+(- 23 19 17)
+
+Finally, we come to our third basic operator in Clojure, which works a little differently than you might think: division. Division in Clojure can be done differently depending on the kind of number you're dealing with. And this, incidentally, is a good place to introduce the two most basic types of numbers in Clojure: ints and doubles. Ints are integers, meaning simple numbers with nothing after the decimal point. Doubles are decimal numbers. Try typing the following:
+
+(type 1)
+(type 2)
+(type 3)
+(type 1.0)
+(type 2.0)
+(type 3.0)
+
+The type function tells you what type of thing a thing is. The type function only takes one argument.
+
+Now, the reason we've taken this little detour to talk about data types is this: how division works changes based on what kind of number you use. Using division on integers is very different from using division on doubles. Try the following in your REPL:
+
+(/ 2 3)
+(/ 4 6)
+(/ 8 12)
+(/ 6 2)
+(/ 6 3)
+(/ 2.0 3)
+(/ 2 3.0)
+(/ 4.0 6)
+(/ 6.0 3)
+
+You'll notice something interesting: what result you get back from the division depends on what kind of number you give it. If you give the division operator at least one double, you'll get back a double. So (/ 3.0 2) and (/ 3 2.0) both give you back 1.5. However, if you only give integers to the division operator, you'll get something else back. You'll either get an integer, if the denominator divides evenly into the numerator, or you get what is known as a ratio. The ratio is basically a fraction. It automatically reduces to its simplest form. Since 4/6 reduces to 2/3, running (/ 4 6) will yield the ratio 2/3.
+
+Obviously, if all you could ever do was just feed a few arguments into a function, you would never get much done in Clojure. That's why functions can be composed, or put together, to make new things. Try the following in your REPL:
+
+(* (/ 3 2) 2)
+(/ (+ 5 7) 6)
+(+ (/ 1 3) (/ 1 3) (/ 1 3))
+(- 1 (/ 1 2))
+
+Similarly to the algebra used in school, the inner parentheses are evaluated first, and then the results of those expressions are evaluated within the larger parentheses. Composing functions in this way is the brass tacks of how we build big things in Clojure.
+
+There's one last data type you need to know about, and that is the string. A string is a sequence of characters. When we're scraping websites later on, string manipulation will be important, because a lot of the data that we download from websites will be in text form, which means it will be stored in strings. Try the following in your REPL:
+
+"put"
+(str "put " "it")
+(str "put " "it " "all " "together!")
+(str "with numbers, too, such as " 1 "!")
+
+You'll notice that entering a string into the REPL returns a string, while using the str function sucks up any argument you put in there and then returns one big string of everything you fed the function.
+
+Finally, variables. Think of a variable as an envelope, and of the value of that variable as the contents of the envelope. Variables store values. An envelope can hold a five dollar bill, or a ten dollar bill, but it is not, itself, a dollar bill. It can also change, where you take out the five dollar bill and put in a ten, or vice versa. You can even leave it empty! Variables are much more important in other programming languages, such as Java and Python, because many popular languages are "object oriented." This means that other languages have this notion of a 'stateful' object, or an object with states that can change. For example, in other languages, you might have a class that has a lot of different attributes that can all change. In Clojure, there is only one type of variable that you should use, and that is the atom. We define an atom using the def keyword, thus:
+
+(def five-dollar-bill (atom 5))
+
+Type those two, and then try the following in your REPL:
+
+five-dollar-bill
+
+@five-dollar-bill
+
+(+ five-dollar-bill five-dollar-bill)
+
+(+ @five-dollar-bill 5)
+
+Notice what you get in each case? five-dollar-bill, by itself, refers to the container, the variable, while @five-dollar-bill refers to the variable, the thing inside of the envelope. Let's make another one. Try the following commands, one at a time.
+
+(def dollar-bill (atom 1))
+
+@dollar-bill
+
+(swap! dollar-bill + 10)
+
+The swap! function changes what's in the envelope for something else. In this case, it lets you add ten to whatever's in the envelope, which is like putting more money in there. You can also take money out:
+
+(swap! dollar-bill - 10)
+
+We can also define atoms as strings and add to those strings. Try the following, one at a time:
+
+(def name (atom "Sir"))
+
+(swap! name str " Arthur")
+
+(swap! name str " Conan")
+
+(swap! name str " Doyle")
+
+@name
+
+(reset! name "Edgar Alan Poe")
+
+@name
+
+(reset! name 1003401)
+
+@name
+
+It's always a good idea to use descriptive names in programming. You'll notice that the five-dollar-bill atom contained the value 5, while the dollar-bill atom, which changed values a lot, had a more general name. Meanwhile the variable containing strings containing the names of various famous authors was called "name" to reflect that. This is part of "style" or the conventions that software developers use to make sure their code is readable for other software developers.
+
+Now that we've learned the nuts and bolts of Clojure, let's create our first Clojure program! To begin with, type "vim helloworld.clj" into your terminal. This will open a buffer. Press I to enter insert mode, and type the following:
+
+;This program will say hello and then ask for your name
+(println "Hello, world!")
+(println "What's your name?")
+(let [username (read-line)]
+(println (str "Pleased to meet you, " username "!")))
+
+Press the esc key, type :wq and then enter. :wq stands for "write quit," which will save (write) your file and then quit the program. Now that you're back to your normal terminal, try this:
+
+clj helloworld.clj
+
+And watch the magic! The program will print "Hello, world!" and ask for your name. Type your name, and it will greet you by name. Et voila! The program executes top to bottom and then returns to terminal when it's done.
+
+Let's dissect this program and see what's going on under the hood.
+
+First of all, we have this line:
+
+;This program will say hello and then ask for your name
+
+This is a COMMENT, which is just a note to anyone reading your source code telling them what the source code does. Then we have the following:
+
+(println "Hello, world!")
+(println "What's your name?")
+
+This is the println function, which prints a line of text to the terminal and then enters a line break, so that whatever prints next is on a new line. The println function, in this case, takes a string as an argument and prints it out. The line break is there to make sure that whatever prints next doesn't print on the same line, which is why "Hello, world!" and "What's your name?" print on two separate lines. Next up is:
+
+(let [username (read-line)]
+(println (str "Pleased to meet you, " username "!")))
+
+The 'let' keyword defines what is known as a symbol. This isn't one hundred percent accurate, but for right now, it's okay to think of a symbol as a variable that never changes. In reality, there is a more subtle difference than that, but for now, it's okay to think of it as an immutable variable, even if that's not QUITE what it is. The let keywork here works like this:
+
+(let [symbol (thing)]
+
+which means that we're saying, "Let this symbol stand for this thing." In this case, the thing in question is the read-line function, which tells the program to pause and wait for the user to type something and press enter. So whatever the user types, is what the username symbol stands for. Finally, we have
+
+(println (str "Pleased to meet you, " username "!")))
+
+You will remember that the str function takes all the stuff you give it and sticks it into one long string. But the word, username, is not in quotes. If it were inside of quotes then the println function would print out, "Pleased to meet you, username!" because it would think that username was just the insite of the string. But it's not, so it gets EVALUATED and the program looks past the symbol and grabs whatever the symbol stands for. So if the user types in "Bob" for their name, the program will say "Pleased to meet you, Bob!" instead of "Pleased to meet you, username!" because it understands that username is just a symbol for whatever the user typed in and not a literal string.
+
+Before we wrap up this chapter, we have a few more functions to learn. The first one is count. You can use it to find the length of a string. Try this in your REPL:
+
+(count "Artichoke")
+
+And it will give you
+
+=> 9
+
+Now try these in your REPL, one at a time:
+
+(count "")
+(count "Psych! I'm actually a star-spider.")
+(count "Eenie Meenie Miney Moe")
+
+And see what you get back.
+
+Finally, let's learn about casting, or, as it's known in Clojure, coercing. Coercing is a way of turning one data type into another. Try the following in your REPL, one at a time:
+
+(type 9)
+(str 9)
+(type (str 9))
+(type "9")
+(int "9")
+(type (Integer/parseInt "9"))
+
+Notice how that works? The str function can take the long 9 and turn it into a string, and the type keyword tells you what's going on there. The type of 9 is long, but the type of (str 9) is a string. The type of "9" is a string, and (str 9) returns "9" and is thus equivalent to it. Ditto for (Integer/parseInt "9"). This is called coercing, and it will become important later when we have big text files and we're hunting through them for numerical data to feed into our functions. On the other hand, if we want to put a number into a string and write that into a text file, coercing the number into a string may turn out to be useful.
+
+Now, let's finish up by adding a few more lines to our program:
+
+;This program will say hello and then ask for your name
+(println "Hello, world!")
+(println "What's your name?")
+(let [username (read-line)]
+(println (str "Pleased to meet you, " username "!"))
+(println (str "Your name is " (count username) " letters long.")))
+(println "How many years old are you? Type a number.")
+(let [userage (read-line)]
+(println (str "You are " userage " years old, and you will be " (+ (Integer/parseInt userage) 1) " in a year.")))
+
+Notice how the last few lines do not do anything new, but uses what we've already learned to expand on the original concept a little. Now it tells the user how old they are, and how old they will be in one year. Note how Integer/parseInt is used to coerce the string into becoming an integer so we can add 1 to it, and also notice how the str function near the beginning of the final line turns it all back into one big string.
+
+SUMMARY
+So far, we've learned how to do basic arithmetic in Clojure, how to cast different data types as one another, what are data types exactly, how to get user input, what are variables and atoms, and how to use a REPL. In the next chapter, we'll go a step further and learn flow control. Flow control will take much of what we're doing and put it together into a larger structure.
