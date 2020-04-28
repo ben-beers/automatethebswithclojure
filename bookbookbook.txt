@@ -367,15 +367,58 @@ Notice the structure of the while statement: (while <condition> (do (this) (this
 
 Notice that the output you get for this is a little different now. Can you figure out why?
 
-Now that we have a little bit of flow control under our belt, let's write some programs!
+SUMMARY: in this chapter, we learned about flow control, boolean statements, and boolean values. In the next chapter, we will put together our flow control and boolean values in order to create functions, which will enable us to write real programs.
 
-Our first short program will be called Guess Which Number? You'll make it by typing this into your terminal: vim guesswhichnumber.clj
+CHAPTER 3 - FUNCTIONS
 
-Once it's open, press I in vim to enter insert mode, and type the following:
+A function is like a miniature program-inside-a-program. The point of a function, fundamentally, is to create a block of code that you can execute at will by CALLING it. Think of a function as a little machine that does a task over and over. Try writing this in your REPL:
 
-(def current-number (atom 0))
+(defn my-function [] (+ 1 1))
 
-(while (not= current-number 17)
-	(do (let [user-number (read-line)]
-		(println "I'm thinking of a number. Can you guess what it is?)
-		))
+You have now defined a new function called my-function. Now try this:
+
+(my-function)
+
+Every time you type this, the REPL will print 2. So, what's going on here? Well, the defn keyword stands for "DEfine FuNction" and is there to let Clojure know that you want to make a new function. So the structure of the statement is like this:
+
+(defn <name-of-function> [<parameters>] <code>)
+
+As you can probably tell, name-of-function is whatever the function is going to be named. By typing that name in parentheses, you can call that function. <parameters> are sort of like slots in the function for the arguments you want to pass to it, and <code> is whatever you want the function to do with those parameters. For example, try this in your REPL:
+
+(defn add-and-double [a b] (* 2 (+ a b)))
+
+(add-and-double 19 17)
+
+That second line will return:
+
+=>72
+
+Clojure will add a and b together when it evaluates the innermost pair of parentheses, which it will do first. It will then multiply their sum by 2, and return the result. Putting [a b] into brackets like that tells Clojure that this function will take two arguments, and the arguments will be referred to by the parameters a and b. That means that, when you call the function, you replace the parameters a and b with whatever arguments you want to feed into the function. Take a moment to reflect on the power of that! You can create a block of code - any code you want - and tell it what arguments to take, and what to do with those arguments. We DEFINE a function by labeling it with a name and telling Clojure what it does, and give it PARAMETERS so it knows how many ARGUMENTS to take. We can then PASS arguments to the function according to its defined parameters. The difference between an argument and a parameter is a subtle one, so I'll take a minute to explain it further: a parameter is part of a function, while an argument is something you put into the function. In our function above, a and b are the parameters, or the part of the function definition that tells it how many arguments to take. The arguments are 19 and 17, which are the things we put into the parameters.
+
+Another distinction that is somewhat subtle is the difference between a VARIABLE, a KEYWORD, and a SYMBOL. A variable is like an envelope containing an object, and the object in the envelope can be swapped out or modified. In Clojure, only atoms are variables. A symbol is one thing that stands for another thing: when we write "def n 7" we are defining n as 7. It's important to note that this is NOT a variable, although the syntax with which we declare it is similar to how other languages declare variables. Rather, n is a SYMBOL for 7, and is considered immutable, like all data types in Clojure besides atoms. Once we declare n to be 7, it is 7 for as long as it exists.
+
+When functions are executed, the program is essentially stopping and going to some other line of code, executing that block of code, and then returning to where it was. So if we write:
+
+1. (defn add-five [x] (+ x 5))
+2. (def k 3)
+3. (print "Let's take a look at this function: ")
+4. (add-five k)
+
+and execute it, Clojure reads the whole program top to bottom. When Clojure reaches line 4, it stops and returns to line 1, and executes whatever code it sees there, replacing x with whatever argument was passed in line 4. In this case, we passed the symbol k, which is evaluated to 5, and then passed as an argument to the function defined on line 1. You can think of functions, in a sense, as an instruction for the program to stop and backtrack to where it was previously, and execute whatever code is defined under the name of that function.
+
+This brings us to another critical discussion that we need to have in order to really understand Clojure, which is the discussion of scope. Scope is a concept that you'll run across in pretty much any modern programming language, although different languages have different ways of dealing with it. Scope basically tells you where a name is valid. Consider the following bit of code, which you can write into a .clj file and run to see its output:
+
+1	(def z 2)			|Create the symbol z and associate it with 2.
+2	(defn add-3-to-z [] (+ z 3))	|Create a function that returns z + 3, so 5
+3					|
+4	(let [z 5]			|Let z equal 5.
+5	(print (+ z 3)			|Print z + 5
+6	(add-3-to-z)))			|Call add-3-to-z
+
+You'll notice something a bit strange: line 5 prints out 8, while line 6 prints out 5. So the z in line 5 is equal to 5, while the function call in line 6 references the z defined on line 1. In fact, the z defined on line 1, and the z defined on line 6, are two different symbols! What's going on here? How come the definition on line 4 doesn't overwrite the definition on line 1? Shouldn't the value of z change after line 4? And how come line 6 still knows what the definition of z on line 1 was? How in the world does all this work!?
+
+The answer is scope. The z defined on line 1 is a GLOBAL symbol, meaning it's valid everywhere in the program, unless it is SHADOWED by something else. In the case of line 4, z is temporarily shadowed when we write let [z 5].Inside of those parentheses where let occurs, z = 5. When we call the function on line 6, however, the program backtracks to line 2. THAT z refers to the definition in line 1, because the function is defined outside of the let block.
+
+It's okay to be confused by that last paragraph. Scope can be a little hard to understand. Another way to think about it is this: think of a let block as a room. Inside of that room, z is defined as 5, so whenever you say "z" inside of the let room, it means five. But after you step outside of that room, z stops meaning five and goes back to meaning 2. The function is sort of like a little machine: when you call the function, it leaves the room, finds a z that means 2, and then comes back into the room and returns the result.
+
+Finally, it's time to talk about EXCEPTION HANDLING.
