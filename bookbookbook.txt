@@ -1,3 +1,5 @@
+CHAPTER ONE
+
 To begin with, you'll want to install Clojure. Clojure runs on the JVM, which means we'll be installing Java first. What dependencies Clojure has will depend heavily on what OS you're running. The rest of this chapter will assume that you're running Linux. In particular, we're assuming that you're running some flavor of Ubuntu. A Debian-based or other distro may have slightly different requirements. On a Windows install, you will want to set up a Linux virtual machine to install Clojure on. If you just want to experiment with the REPL without actually writing full-length programs, repl.it has an in-browser Clojure REPL that you can use.
 The dependencies for Clojure in this context are bash, curl, rlwrap, and Java itself. the sudo apt-get install command should suffice to install most of these on most Linux distributions. If that doesn't work, try running sudo apt-get update first, and then installing. Any further troubleshooting will depend on what version/distro of Linux you are working with.
 Once everything has been installed, you can begin playing with Clojure by typing clj into your terminal. This initiates a REPL for closure. REPL stands for Read, Evaluate, Print, Loop. This is a very fancy way of saying that we have initiated an interactive shell for Clojure. What that means is that we can type in stuff from the Clojure language and see output in real time. We can type in functions, literals, commands, and so on, and watch the interpreter do stuff in real time. It is very similar to Python's interactive shell. The "read" part of REPL is where the interpreter reads our input that we type in at the command line. The Evaluate part of REPL is where the interpreter evaluates that input to produce output for us. The Print part of REPL is where the interpret takes the output and displays it on the command line. REPL: Read, Evaluate, Print, Loop.
@@ -215,3 +217,165 @@ Notice how the last few lines do not do anything new, but uses what we've alread
 
 SUMMARY
 So far, we've learned how to do basic arithmetic in Clojure, how to cast different data types as one another, what are data types exactly, how to get user input, what are variables and atoms, and how to use a REPL. In the next chapter, we'll go a step further and learn flow control. Flow control will take much of what we're doing and put it together into a larger structure.
+
+CHAPTER TWO - FLOW CONTROL
+
+The program we wrote last chapter executed from beginning to end, top to bottom, like a grocery list, just going down the page and executing the instructions one at a time. Very few real-life programs work like this, though. In real programs, the computer makes decisions: it can execute a single instruction multiple times, skip some instructions, or choose which instructions to run. The means of doing this is called flow control, and it works in a manner very similar to a flowchart. Observe this diagram (see: flowchart.png).
+
+This is an instance of flow control using what are known as if-else statements. First, we start with a situation where the computer does not work. IF it is not plugged in, THEN we plug it in. ELSE, we go to the next step and ask if the computer is turned on. IF it is turned on THEN we restart it. ELSE, we turn it on. This is an instance of flow control. In order to make a computer program that works like a flowchart, you need to have a way to represent truth and falsity, yes and no; "Is the computer turned on?" is answered with yes or no because it is either true or false that the computer is turned on. In this case, we are using what is known as boolean values.
+
+A boolean operation turns on whether or not a value is true or false. Fire up your REPL and try the following:
+
+(= 1 1)
+(= 1 2)
+(true? (= 1 1))
+(true? (= 1 2))
+(false? (= 1 1))
+(false? (= 1 2))
+
+You'll notice that (= 1 1) returns true and (= 1 2) returns false because 1 does not equal 2. (true? <statement>) returns true if <statement> is true, and (false? <statement>) returns true if <statement> is false. Clojure can return boolean values in many other ways as well, using these comparison operators:
+
+=	|equals
+not=	|does not equal
+<	|less than
+>	|greater than
+<=	|less than or equal to
+>=	|greater than or equal to
+
+These are comparison operators that return boolean values when they compare two things. Try the following commands in your REPL, one at a time:
+
+(not= 1 1)
+(not= 1 2)
+(< 2 3)
+(< 5 3)
+(> 5 7)
+(> 7 5)
+(<= 7 11)
+(<= 11 7)
+(<= 11 11)
+(>= 7 11)
+(>= 11 7)
+(>= 13 13)
+(= 17 17)
+(= 17 19)
+(= 19 17)
+
+This should give you a good gut feeling for how these comparison operators work, but we're not quite done yet. You might have guessed by now that these comparison operators work differently depending on what data types you give them. A string is never equal to a number, for example. To verify this, try the following in your REPL, one at a time:
+
+(= 0 "0")
+(= "0" "0")
+(= "0" "Clojure")
+(= "Clojure" "Clojure")
+(= "Clojure" "clojure")
+(= 0.0 0.0)
+(= 0 0.0)
+
+However, even though different data types are never equal, some operators can, in fact, take operands of different types (an operand is just the thing an operator takes, e.g. a and b are the operands for a + b and the operator is +). For example inequality operators can take operands of multiple types. Try these in your REPL:
+
+(<= 2 2.0)
+(< 2 99.321)
+(> 2 500)
+(> 2.1 0)
+
+In addition to comparison operators, there are also boolean operators, or operators that return a boolean value and take boolean values. The three boolean operators are AND, OR, and NOT. Try the following in your REPL:
+
+(and true true)
+(and false false)
+(and true false)
+(or true true)
+(or true false)
+(or false false)
+(not true)
+(not false)
+
+Notice that both AND and OR take two operands, while NOT takes only one. Also notice that NOT returns true when you give it something false, and false when you give it something true. It can be helpful to think of NOT as something that just flips whatever value you get it. And yes, flipping something twice does return it to its first state. Try these in your REPL:
+
+(not true)
+(not (not true))
+(not false)
+(not (not false))
+(not (not (not (not (not true)))))
+
+A handy thing to remember: an even number of NOTs returns the original truth value (a truth value is just whether or not something is true or false) while an odd number of NOTs returns the opposite of the original truth value.
+
+To keep all this stuff straight, it helps to use what is called a truth table. A truth table is a table that tells you when an expression is true or false, based on the truth or falsehood of the things inside of that expression. Here are the truth tables for AND, OR, and NOT:
+
+a	|b	|(and a b)
+T	|T	|T
+T	|F	|F
+F	|T	|F
+F	|F	|F
+
+To read this table, look at the truth values for the a and b first, and then for the expression (and a b). Notice that (and a b) is true only when both and b are true. Or is a little different:
+
+a	|b	|(or a b)
+T	|T	|T
+T	|F	|T
+F	|T	|T
+F	|F	|F
+
+Notice that (or a b) is true when a is true, when b is true, and also when both are true. That last part is something you need to take notice of: the or operator is what we call an "inclusive or", meaning it's true when both of its operands are true. There is an old joke about the inclusive or that runs like this: a logician has a child. Someone asks the logician whether the child is a boy or a girl. The logician replies, "Yes." Later on, the logician drinks a little wine, and then a little beer. Someone asks the logician, "Did you have wine or beer today?" and the logician again replies, "Yes."
+
+Finally, the truth table for not, which is quite simple:
+
+a	|(not a)
+1	|0
+0	|1
+
+As you can see, whatever you input for a gets flipped around to the other value.
+
+You can mix boolean and comparison operators because comparison operators return boolean values and boolean operators take boolean values (and return them). Try this in your REPL, but be careful to get it exactly right:
+
+(not (or (and (= 1 0) (>= 11 7)) (not= 5 5)))
+
+You'll notice that this returns true. The reason is that the comparison operators in the inmost parentheses are evaluated first:
+
+(not (or (and (= 1 0) (>= 11 7)) (not= 5 5)))		|The original expression
+(not (or (and false (>= 11 7)) (not= 5 5)))		|(= 1 0) is false
+(not (or (and false true) (not= 5 5)))			|(>= 11 7) is true
+(not (or (and false true) false))			|(not= 5 5) is false
+(not (or false false))					|(and false true) is false
+(not false)						|(or false false) is false
+true							|(not false) is true
+
+Now that we've learned a bit about boolean operators, comparison operators, and boolean values, we can proceed to flow control, as promised.
+
+The most basic flow control statement is the if statement, as we noted before. The if statement has the structure, (if <condition> <clause> <else>). If <condition> has the boolean value of true, then <clause> is executed. If not, then <else> is executed. Try the following in your REPL:
+
+(if true (+ 1 1))
+(if true (+ 1 1) (+ 1 2))
+(if false (+ 1 1) (+ 1 2))
+
+Notice that you don't need an else clause. You just say, "If this, then do this." But, Clojure is flexible enough to let you say, "If this, then do this, but otherwise to this," which is what the <else> clause is about. You can also add other expressions into the if statement. Try this in your REPL:
+
+(def number (atom 5))
+(if (= @number 5) (print "Five!") (print "Some other number."))
+(swap! atom + 1)
+(if (= @number 5) (print "Five!") (print "Some other number."))
+
+In most terminals, pressing the up arrow on your keyboard will allow you to re-enter a previous line. But notice what happens! If you run the test when number holds the value of 5, then the clause is executed, because (= @number 5) evaluates to true. Notice how the flowchart logic works here: (see atomflowchart.png). The condition part of the tree can be anything so long as it finally becomes a boolean value when the program is done evaluating it, and the clauses can be whatever you want as long as it's a set of instructions Clojure can understand.
+
+Another important flow control operator is WHILE. The WHILE operator takes a condition, much like the IF operator. The difference is that the IF operator will only execute once. The WHILE operator, by contrast, will execute over and over until its condition is no longer true. For example, try this in your REPL:
+
+(def a (atom 0))
+(while (< @a 10) (do (println @a) (swap! a inc)))
+
+Notice the structure of the while statement: (while <condition> (do (this) (this) (and this))). While <condition> is true, everything in front of the do statement will be executed over and over until the condition is no longer true. In this case, it prints the value of a, and then adds 1 to a, and the condition is that it will do this until a is no longer less than 9. Now, try this in your REPL:
+
+(def a (atom 0))
+(while (< @a 10) (do (swap! a inc) (println @a)))
+
+Notice that the output you get for this is a little different now. Can you figure out why?
+
+Now that we have a little bit of flow control under our belt, let's write some programs!
+
+Our first short program will be called Guess Which Number? You'll make it by typing this into your terminal: vim guesswhichnumber.clj
+
+Once it's open, press I in vim to enter insert mode, and type the following:
+
+(def current-number (atom 0))
+
+(while (not= current-number 17)
+	(do (let [user-number (read-line)]
+		(println "I'm thinking of a number. Can you guess what it is?)
+		))
