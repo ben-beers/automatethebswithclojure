@@ -466,4 +466,65 @@ The most commonly-used collection type in Clojure is the VECTOR. When you see lo
 
 (conj [2 3 5] 7)
 
-You will notice that, for the first command, the 7 is added to the beginning, while for the second command, the 7 is added at the end. In the first case, the 7 is PREPENDED, meaning it has been added to the beginning of the list. In the second case, the 7 has been APPENDED, meaning it has been added to the end of the list. SO if, for example, we wanted to write a 
+You will notice that, for the first command, the 7 is added to the beginning, while for the second command, the 7 is added at the end. In the first case, the 7 is PREPENDED, meaning it has been added to the beginning of the list. In the second case, the 7 has been APPENDED, meaning it has been added to the end of the list. So for any application where we need to process things back-to-front, or build something backwards, lists can come in handy. Otherwise, vectors are, generally speaking, the better choice.
+
+Before we go any further and learn to really work with vectors and lists, it is important for you to understand the idea of a method. A method, in object-oriented programming, is a function (more broadly, a procedure) bound to a class. Clojure is not object-oriented, but it does have methods in the sense that it has functions defined on classes of things. For example, there are certain methods that only work on certain data structures. In other languages, such as Python, you can have methods that work only on strings, e.g. string.Lower() which changes the whole string to lower case and only works on strings. In Clojure, we call methods the same way we call any other function, but our methods only work if we give them the right kind of argument.
+
+One of the more fundamental methods that works on vectors is the nth method, which we can call thus: (nth <vector> <number>). Try the following in your REPL, one at a time:
+
+(nth [1 2 3 4 5] 0)
+(nth [1 2 3 4 5] 1)
+(nth [1 2 3 4 5] 2)
+(nth [1 2 3 4 5] 3)
+(nth [1 2 3 4 5] 4)
+(nth [1 2 3 4 5] 5)
+
+You'll notice that the final one gives you an index out of bound exception, which is a fancy way of saying that the vector has no value with index 5. This is because vector (and list) indices count from 0, so 0 yields the first element while 4 will yield the fifth element. It's useful to keep this in mind when we're slicing vectors, which we'll learn about next.
+
+Vectors can be operated upon to return subvectors, or slices of the original vector. For example, try the following in your REPL, one at a time:
+
+(subvec [1 2 3 4 5 6 7] 0)
+(subvec [1 2 3 4 5 6 7] 1)
+(subvec [1 2 3 4 5 6 7] 2)
+(subvec [1 2 3 4 5 6 7] 3)
+(subvec [1 2 3 4 5 6 7] 4)
+
+You'll notice that each function has this form: (subvec <vector> <n>), and you'll also notice that each time you call the function, you get back a sub-vector beginning with index n and running through until the end of the list, e.g. (subvec [1 2 3] 1) returns [2 3]. The subvec function can take an additional argument to slice the list instead of just cutting off one end, and when you do so, it has the form: (subvec <vector> <m> <m>). This will return every value in the list, beginning with and including n, and up to but NOT including m. To get a feel for this, try the following in your REPL, one at a time:
+
+(subvec [2 3 5 7 11 13 17 19 23] 0 3)
+(subvec [2 3 5 7 11 13 17 19 23] 1 3)
+(subvec [2 3 5 7 11 13 17 19 23] 2 3)
+(subvec [2 3 5 7 11 13 17 19 23] 5)
+(subvec [2 3 5 7 11 13 17 19 23] 3 7)
+
+You can find the length of a vector using the count function, which you call like this: (count <vec>). This returns the number of items in a vector counting at one. Be careful: if you try to make the m in the previous function equal to the number returned by count, then you'll get an out of bounds error because count counts from one whereas subvec counts from zero. Indices count from zero, but the length of the list is given counting from one. Like this:
+
+Index	 0 1 2 3 4 5 6 7
+Vector	[A B C D E F G H]
+Count	 1 2 3 4 5 6 7 8
+
+So the subvector of this vector that is 4 units long (i.e. [A B C D]) has a count of 4 but its indices run from 0 to 3.
+
+Another important part of working with vectors is knowing how to change their values at different indices. We accomplish this using the assoc method. Try the following in your REPL, one at a time:
+
+(assoc [1 2 3] 0 "A")
+(assoc [1 2 3] 0 "A" 1 "B")
+(assoc [1 2 3] 0 "A" 1 "B" 2 "C")
+
+Now, try these two:
+
+(assoc [2 3 5 7 11 13] 1 "B" 4 "Z")
+(assoc [1 2 3 4 5] 3 [2.5 3 3.5])
+
+Two things.
+
+First, keep in mind that you never change any vector. Right now, when you type these things into the REPL, it may feel as if you're modifying the vectors, as if you're mutating the state of a persistent object. But, that's not true. What's really happening is that you are taking a vector and passing it as an argument to a function that returns a different vector, similar to the one that you just put in. So when you call (assoc [1 2 3] 0 "A") you're passing the [1 2 3] vector to the assoc function as an argument, and the assoc function is giving you back another vector with a single value replaced with a string. This is not just technical pedantry; immutability is a deep part of how Clojure works and keeping this in mind will make other aspects of the language more intuitive when you learn them later on.
+
+Secondly, you'll notice that the assoc function is clever enough to know which value you feed it is an index, and which one is a thing to put into the vector at that index. The structure of the function is: (assoc <vector> <index 1> <thing 1> <index 2> <thing 2> <index 3> <thing 3> ..... <index n> <thing n>). The point here is that you can input any number of indices (up to the number of indices that the vector has) and get back a new vector with those indices holding the things you associated with them using the assoc function. Incidentally, you might have realized at this point why the "assoc" function has that name.
+
+If you want to check whether a vector contains a particular value, you may do so using the contains method, which you can call thus: (contains? <vector> <thing>). Try the following in your REPL:
+
+(contains? [1 2 3] 1)
+(contains? [1 2 3] "A")
+
+When you call contains? it will, unless you feed it something that throws an error, always return a boolean value that simply tells you whether or not the specified thing is in the vector.
