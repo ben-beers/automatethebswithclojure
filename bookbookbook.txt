@@ -421,4 +421,49 @@ The answer is scope. The z defined on line 1 is a GLOBAL symbol, meaning it's va
 
 It's okay to be confused by that last paragraph. Scope can be a little hard to understand. Another way to think about it is this: think of a let block as a room. Inside of that room, z is defined as 5, so whenever you say "z" inside of the let room, it means five. But after you step outside of that room, z stops meaning five and goes back to meaning 2. The function is sort of like a little machine: when you call the function, it leaves the room, finds a z that means 2, and then comes back into the room and returns the result.
 
-Finally, it's time to talk about EXCEPTION HANDLING.
+Finally, it's time to talk about EXCEPTION HANDLING. One of the realities of software engineering is that things go wrong; programs have bugs, developers make mistakes, users input things they should not, programs crash, hardware doesn't always work the way it's supposed to, and so on. Exception handling is one way that we can deal with this as developers. Exception handling is a neat feature of many programming languages that allows us to build contingency plans into the program itself. The idea is that, instead of just straight-up executing a piece of code, we can instead TRY to execute a piece of code and, if that results in an error, default to something else. Here's an example of how we can use exception handling in Clojure. First, type this in your REPL:
+
+(defn divide-3-by [x] (/ 3 x))
+
+Once you've defined that function and then pressed enter, go ahead and try the following:
+
+(divide-3-by 5)
+(divide-3-by 2)
+(divide-3-by 0)
+
+You'll notice that that last one throws an error, because you're performing a mathematical operation that is undefined. The question now arises, how can we anticipate this from the user? We, of course, as impeccably wise and learned software developers, know well enough that you cannot divide by zero. But what if someone, a user of our program, makes an input to this function that doesn't work? How can we get around that? The answer is exception handling. Type into your terminal vim exceptions.clj, and write the following code:
+
+(defn john-wayne-division [x]
+  (try
+    (/ 3 x)
+    (catch Exception e "Looks like you tried some division you ain't supposed to, partner!")))
+
+(john-wayne-division 3)
+(john-wayne-division 1)
+(john-wayne-division 0)
+(john-wayne-division 7)
+(john-wayne-division "Wild west division!")
+(john-wayne-division nil)
+
+Hit escape, then type :wq and press enter to write to the file and quit vim. Now, in your shell, type clj exceptions.clj and press enter. You'll notice that, whenever you try to divide by 0, or do something even more goofy like trying to divide by a string or the nil value, the exception handling activates and John Wayne advises you not to try that again. As fun as that example was, it also helps to try something a little more normal:
+
+(defn normal-division [x]
+  (try
+      (/ 3 x)
+          (catch Exception e (str "got exception: " (.getMessage e)))))
+
+This example showcases why we give the exception a name in the first place. The exception is named e, which means that it's a symbol representing the exception created when we do something stupid like dividing by 0. In this case, Clojure will print out a message from the exception telling us what went wrong, such as trying to cast a string to a number or attempting to divide by zero.
+
+##WILL NEED COLLATZ EXERCISE HERE
+
+CHAPTER 4 - LISTS, VECTORS, AND THEIR METHODS
+
+Most modern programming languages implement some variety of COLLECTION, meaning a data structure that can hold a list or collection of things. For example, Java has lists, maps, and arraylists; C++ has arrays; Python has lists and dictionaries. Clojure implements java.util.collections, meaning it is built on the library of collections available to the JVM. In layman's terms, anything you can do with collections in Java can also be done in Clojure.
+
+The most commonly-used collection type in Clojure is the VECTOR. When you see lots of values inside of a set of brackets, like this: [1 2 3 4 5], you know that you're dealing with a vector. Clojure also uses LISTS, but lists in Clojure are generally used when you want to process something from back to front. Generally speaking, it's advisable to use vectors instead. The reason that you use lists to process things back to front is that lists expand by being PREPENDED, while vectors expand by being APPENDED. To prepend means to add to the beginning, while to append means to add from the end. To see how this works, run the following two commands in your REPL, one at a time:
+
+(conj (list 2 3 5) 7)
+
+(conj [2 3 5] 7)
+
+You will notice that, for the first command, the 7 is added to the beginning, while for the second command, the 7 is added at the end. In the first case, the 7 is PREPENDED, meaning it has been added to the beginning of the list. In the second case, the 7 has been APPENDED, meaning it has been added to the end of the list. SO if, for example, we wanted to write a 
