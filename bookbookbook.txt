@@ -522,9 +522,122 @@ First, keep in mind that you never change any vector. Right now, when you type t
 
 Secondly, you'll notice that the assoc function is clever enough to know which value you feed it is an index, and which one is a thing to put into the vector at that index. The structure of the function is: (assoc <vector> <index 1> <thing 1> <index 2> <thing 2> <index 3> <thing 3> ..... <index n> <thing n>). The point here is that you can input any number of indices (up to the number of indices that the vector has) and get back a new vector with those indices holding the things you associated with them using the assoc function. Incidentally, you might have realized at this point why the "assoc" function has that name.
 
+One last note: the "assoc" method can be used to add new values to a vector, so long as the indices you pass to it come directly after the indices of the original vector. It's okay if you find that description confusing, but the description makes it sound more complicated than it really is. It will be easier if we use some examples.
+
+Suppose you have this vector: ["a" "b" "c"]. The three indices here are 0, 1, and 2. Create that vector in you REPL like so:
+
+(def abc ["a" "b" "c"])
+
+And then run this:
+
+(assoc abc 3 "d")
+
+You'll notice that the output for this function is ["a" "b" "c" "d"]. Clojure looked at the vector, saw that there was nothing in index 3, and placed "d" there per your command. Now, if you type abc again, Clojure will return ["a" "b" "c"] without the "d", showing that the original vector has not changed - remember, data structures in Clojure are immutable! - so the assoc function is really just returning a new vector with an extra value. You can add more than one value this way, thus:
+
+(assoc abc 3 "d" 4 "e")
+
+Which will return ["a" "b" "c" "d" "e"], since the original vector had no indices at 3 or 4 and you filled them.
+
+However, you'll get an error if you try this:
+
+(assoc abc 4 "e")
+
+Because there is no index 3, so Clojure is trying to create a vector with some sort of weird gap in it. Clojure can't do anything like that, so you get an error. If you want to use the assoc function to return a new vector with new values that is longer than the original, then the new indices you define values in must be adjacent to the original values.
+
 If you want to check whether a vector contains a particular value, you may do so using the contains method, which you can call thus: (contains? <vector> <thing>). Try the following in your REPL:
 
 (contains? [1 2 3] 1)
 (contains? [1 2 3] "A")
 
 When you call contains? it will, unless you feed it something that throws an error, always return a boolean value that simply tells you whether or not the specified thing is in the vector.
+
+There are times when we want to find the index of a particular item within a vector. In these cases, we use the .indexOf method. Try this in your REPL:
+
+(def new-vector ["a" "b" "c" "d" "e"]
+(.indexOf new-vector "b")
+
+If all goes well, this will return 1, since "b" is the second value in new-vector. Now, for a slightly trickier example:
+
+(def new-vector ["a" "b" "a" "c"])
+(.indexOf new-vector "a")
+
+You'll notice that this command returns 0 rather than 2, even though "a" is present at two indices in new-vector. This is because the .indexOf method only returns the index of the first occurrence of an item in a vector. Therefore, if you have a vector 100 entries long, and that vector has 21 occurences of the string "ABC", and you run (.indexOf that-vector "ABC"), you'll get the index of the first occurrence of "ABC" in that vector.
+
+You can also sort vectors, and other collections too. To sort a vector or list, just type (sort <collection>). As always, the paremeter passed to the function can be the symbol for a thing or the thing itself. Try the following in your REPL.
+
+(sort [0 9 8 7 6])
+(sort (list 2 3 1 4 2 5 3 1))
+(sort "the quick brown fox jumps over the lazy dog")
+
+You'll notice something funny about that last sort. Well, two things. First, and less importantly, it contains the entire alphabet plus three spaces. Second, and much more importantly, it returns a sequence of letters and the word "space" with a backslash \ before each one. What does that mean? What that means is that you've got a sequence of "characters," which are their own special data type in Clojure. Characters are exactly what they sound like: single letters (or spaces, or quotation marks, or some such) that have their own data type in Clojure. The sort function, when called on a string, contains a sorted collection of all of that string's characters.
+
+You can reverse Clojure collections, too. This is done using, surprisingly enough, the reverse function. Try these in your REPL:
+
+(reverse [1 2 3 4 5])
+(reverse (list 2 3 1 4))
+(reverse "Bob's your uncle!")
+
+Notice that that last one returns a sequence of characters as well. To get around this and get a true string reversal, we can learn a little about the apply function, and then return ot the reverse function after a moment. Try the following in your REPL:
+
+(apply + [1 2 3 4 5])
+(+ 1 2 3 4 5)
+(apply str 2 3 5 7)
+(str 2 3 5 7)
+
+So far you may be scratching your head. "What gives?" you say, "This apply function just does the same thing as passing multiple arguments to a function anyway." The thing is, apply has this nice property that it can distribute over the contents of a collection, such as a vector or other sequence. To see the power of this, try the following in your REPL:
+
+(reverse "Bob's your uncle!")
+(str (reverse "Bob's your uncle!"))
+(apply str (reverse "Bob's your uncle!"))
+
+Notice the difference there? That second command returns the whole sequence turned into a string, complete with parentheses and slashes. The third command, however, looks INTO the sequence, plucks out each term, and then applies the str function to those. This brings us full circle, because it gave us a true string reversal, but we also learned something valuable during the journey: the apply command can look INTO sequences, pull out their contents, and apply functions to them. Running the command (str (reverse "Bob's your uncle!")) is like taking an envelope full of jigsaw puzzle pieces, and framing the whole envelope in a picture frame. By contrast, running (apply str (reverse "Bob's your uncle!")) is like taking the puzzle pieces out, and fitting them together inside of the frame. It's obvious which one was more desirable in this case.
+
+There is another function in Clojure called "reduce" that works similarly to "apply." In most cases, they're the same, but there is a subtle conceptual difference that can have implications for how they are used. When we run
+
+(apply + [1 2 3 4 5])
+
+This is equivalent to
+
+(+ 1 2 3 4 5)
+
+Whereas, when we run
+
+(reduce + [1 2 3 4 5])
+
+This is equivalent to
+
+(+ 5 (+ 4 (+ 3 (+ 1 2))))
+
+As I said, this will end up the same way in most cases. But it is helpful to know what each function is actually doing, in case you run into any errors that can only be solved by drawing a nice distinction.
+
+So we can reverse things and use apply to get stuff out of vectors so we can operate on their terms one at a time. The last thing to learn is how to turn things into vectors. If you want to turn a string into a vector, use the vec function:
+
+(vec "abc")
+
+Which returns [\a \b \c]. But turning that into a list runs into some issues:
+
+(list [\a \b \c])
+=> ([\a \b \c])
+
+(list "abc")
+=> ("abc")
+
+Darn! It seems that running the list command only takes the whole thing and puts it into a list, instead of breaking it into a list of many characters. If only there were some way to pull all the characters out of the list, or out of the vector, and apply the "list" function to them one at a time!
+
+Oh, right:
+
+(apply list [\a \b \c])
+=> (\a \b \c)
+
+(apply list "abc")
+=> (\a \b \c)
+
+You can also coerce these things back into being strings. Obviously, you don't just apply the str command, because if you do:
+
+(str [\a \b \c])
+=> "[\\a \\b \\c]"
+
+I shouldn't have to say what the solution is at this point. How do you pull each character out of the vector and apply str to it recursively?
+
+
+
