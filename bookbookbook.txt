@@ -528,3 +528,77 @@ If you want to check whether a vector contains a particular value, you may do so
 (contains? [1 2 3] "A")
 
 When you call contains? it will, unless you feed it something that throws an error, always return a boolean value that simply tells you whether or not the specified thing is in the vector.
+
+SUMMARY: in this chapter, we explored lists and vectors, which are important because they're the primary data structures that can hold multiple items. This especially applies to vectors. We also learned about the conjoin, nth, subvec, assoc, and contains? methods and how to use them. In the next chapter, we'll take a look at maps.
+
+CHAPTER 5: MAPS
+
+A map, also known as an associative array, is a data structure that basically consists of two subsets: keys and values. A map has a set of keys, and a set of values, and each key points to a value. In Python, a map is called a "dictionary," because the relationship between keys and values is very similar to the relationship between words and their definitions in a dictionary. Maps are very important in computer programming because there are many, many problems that maps can solve. In this chapter, we'll find out how to define a map, learn some functions that can be called on maps, and then learn some basic problems that can be solved using maps.
+
+The best way to learn what makes a map different from a list or a vector is the define one in your REPL and play around with it a bit, and that is precisely what we're going to do. You may have already noticed that there are quite a few different ways to do most things in Clojure. This isn't like Python, where there is generally one correct and obvious way to do things. Very often, how one does a thing in Clojure is a matter of taste. Other times, there are many ways to do a thing, but there is one way that is idiomatic or stylistically correct. So keep in mind that how we define maps here is just one way of doing so. Now, to start off, open your REPL and type in the following: 
+
+(def m (hash-map :a 1 :b 2 :c 3 :d 4 :e 5))
+
+There are a few different things going on here, so let's dissect that first line of code. First, you may have noticed the letters with colons before them, :a :b :c etc. These are what are known as keywords. This is a special data type in Clojure that always evaluates to itself. There is tremendous utility in a data type that simply evaluates to itself, and we're about to see one use of it here. Keep in mind that keywords need not be a single letter. You can define keywords such as :foo or :bar or :fuzzywuzzywuzabear and they will always evaluate to themselves. Try typing :foo into your REPL to see what happens. You'll notice that it returns :foo, simply evaluating the expression to itself.
+
+If you type m into your REPL, it will return the following, or something like the following:
+
+{:c 3, :b 2, :d 4, :a 1}
+
+I say "something like" the following because maps are not an ordered data type. More on that in a moment. For now, let's just see how keys and values work. Try the following in your REPL:
+
+(m :a)
+(m :b)
+(keys m)
+(vals m)
+m
+
+The first two lines make it clear what's going on here. When you call a map like a function and pass an argument to it, if that argument is in its list of keys, it returns the value for that key. The key :a is associate with the value 1, and the key :b is associated with the value 2, and so on, so calling the map like a function and feeding it :a or :b will return the proper values. The keys function will return a list of all of m's keys, and the values function will return a list of all of m's values. Simply typing m will return the whole map.
+
+I said a moment ago that maps are not ordered, which is to say, it doesn't matter what orders you type the items in. Unlike, say, vectors, which are ordered, the items in a map do not have any order in particular. To demonstrate this, try the following in your REPL:
+
+(= [0 1 2] [2 1 0])
+
+You will notice that this returns false. Even though these vectors contain the same terms, the terms are not in the same order, so Clojure sees two different vectors here. For vectors, it's important what order the terms are in. If two vectors contain the same terms (in this case, the numbers 0, 1 and 2) but those terms are not in the right order, then you're dealing with two completely different vectors, not equal in any sense. But with maps, the situation is different. Map keys-value pairs do not lie in any specific order. Vectors and lists are sort of like the cars on a train, that are linked together in a specific order. The set of keys or values in a dictionary, by contrast, is like a bag of marbles. The things in the bag do not have any specific linear order. They're just sort of "in the bag." Accordingly the equality function for two maps will return "true" even if they are in a different order, so long as they have the same key-value pairs. Try this in your REPL:
+
+(= {:a 1, :b 2, :c 3} {:c 3, :b 2, :a 1})
+
+This returns true, because every key-value pair in the first map has a corresponding key-value pair in the second map.
+
+I want to take a moment to warn the reader that it's not REQUIRED to use keywords for map keys. Strictly speaking, any item that can go into a collection can be a key or value. You can map integers to other integers, for example:
+
+(def m (hash-map 1 2 2 3 3 4 4 5 6 0))
+=> {1 2, 2 3, 3 4, 4 5, 6 0}
+(keys m)
+=> (1 2 3 4 6)
+(vals m)
+=> (2 3 4 5 0)
+
+This map is best understood by visualizing it as a table:
+
+KEYS	|VALUES
+________|______
+1	|2
+2	|3
+3	|4
+4	|5
+6	|0
+
+THere's nothing stopping you from relating vectors to lists or lists to integers or even other maps to keywords. You can map more-or-less anything to more-or-less anything else. Try these in your REPL:
+
+1. (hash-map 1 [2 3 5] 2 [7 11 13] 3 [17 19 23])
+2. (hash-map :primes [2 3 5 7] :!primes [1 4 6 8 9])
+3. (hash-map :a [0 0 0] :b [0 0 0] :c [0 0 0])
+
+The first maps 1 to a vector containing the first three prime numbers, 2 to the next three primes, and 3 to the next three. The second maps the keyword :primes to all the primes under 10, and :!primes to all the nonprimes under 10. The third is a simple implementation of a tic-tac-toe board. :a is the first row, :b is the second, and c: is the third. If we wanted, we could write some functions and use that map as the basis for a simple text-based tic-tac-toe game that could run in terminal.
+
+One final word: calling (<map> <key>) is the most parsimonious way to acquire the value for a key. You can also use the get function, thus: (get <map> <key>). One cool feature of the get function is the default. If you type (get <map> <key> <default>), it will return the value for that key, and if the key is not found, it will return the default argument, whatever that happens to be. Try this in your REPL:
+
+(def m (hash-map :a 1 :b 2 :c 3))
+(m :a)
+(get m :a)
+(get m :a "Key not found")
+(get m :z "Key not found")
+(m :z "key not found")
+
+You'll notice that, since :z is not a key of m, it returns "key not found." Moreover, the default argument can still be passed even if the "get" function is omitted. Generally speaking, it looks cleaner to omit "get', but it can perhaps be less ambiguous and easier to read to include it. Whether or not you want to prioritize parsimony or readability will, of course, depend on the individual piece of code that you're writing at a given time.
