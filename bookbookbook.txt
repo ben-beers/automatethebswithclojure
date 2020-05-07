@@ -712,3 +712,140 @@ One final word: calling (<map> <key>) is the most parsimonious way to acquire th
 (m :z "key not found")
 
 You'll notice that, since :z is not a key of m, it returns "key not found." Moreover, the default argument can still be passed even if the "get" function is omitted. Generally speaking, it looks cleaner to omit "get', but it can perhaps be less ambiguous and easier to read to include it. Whether or not you want to prioritize parsimony or readability will, of course, depend on the individual piece of code that you're writing at a given time.
+
+CHAPTER SIX - STRING MANIPULATIONS
+
+Much of the data that you run into while programming is going to be in the form of text. Clojure programs, although they turn into different kinds of code when being compiled or run, begin their lives as text files. Websites are represented by HTML and CSS, both of which are stored in document form as text files. Most APIs will provide their data represented in JSON format, which typically comes as a text file if you download it. And it's not just JSON: many, many different formats exist for representing data as text. Nearly every piece of data that is meant to be human-viewable can be represented in text. That all means that, if you want to manipulate data, you need the ability to manipulate text files. Later on, when we scrape websites, much of the information that we take from them will be stored as text, and that information will be parsed as text. Since Clojure uses strings for holding text, we'll be using the string and char data types a lot, and it behooves us to know how to use them.
+
+Additionally, strings are important because Clojure is homoiconic. Homoiconicity is a fancy computer science term for a program that treats its own code as data. That is to say, a homoiconic language can manipulate code written in that language. A Clojure program can, if written correctly, write another Clojure program. Clojure code is homoiconic, so it can generate more Clojure code. More fundamentally, though, the homoiconicity of Clojure means that the "internal representation" of the program has the same structure as the "external representation." This can all sound very jargon-laden and sciencey and intimidating, but never fear: once you grasp the fundamentals, it will all seem quite easy.
+
+The external representation of a program, simply put, is the source code. The code that you type into emacs (or vim, or an IDE) is the external representation of the program, the stuff you see in front of your eyes on the screen. The INTERNAL representation, by contrast, is what the computer does with it once it evaluates the source code, such as while compiling or interpreting or, well, running the program. The external representation is always put into a form that a human can read or understand. The internal representation has to do with what's going on "under the hood," what's happening inside of the computer; you could almost think of it as the way that the computer represents information to itself, when it doesn't have to worry about the information being readable by a person. The power of LISP languages, of which Clojure is one, is that these two representations have the same structure. The internal representation is put together in a similar way to the external representation. The different parts of the internal representation and related to one another in the same way as the different parts of the external representation. Those parentheses that you've been writing this whole time have a fancy name: "s-expressions." The internal representation of Clojure code is made up of S-expressions, and so is the source code itself. A fluffy metaphorical way of putting this is that Clojure sees itself the same way that you see it. Clojure JUST IS the symbol that represents it. Homo-iconic, from the Latin roots, "same" and "picture." The picture of Clojure is Clojure itself. Thus, Clojure programs can generate other Clojure programs and treat them as data. This is primarily done through something called "macros" which we'll examine in the next chapter. But first, we're going to learn about strings.
+
+You can make any piece of text into a string literal using a single quote, or by using the quote function. A string literal is a string that Clojure takes literally, rather than evaluating it. So instead of reading "n" as a symbol, Clojure can read it as a string, reading it literally. This can be done by typing 'n or (quote n). Try the following in your REPL:
+
+1. (def n [1 2 3 4 5])
+2. (print n)
+3. (print 'n)
+4. (print (quote n))
+
+Notice how 2 evaluates n as a SYMBOL and prints out the vector [1 2 3 4 5], which is what n stands for. 3, however, does not evaluate n at all, and merely prints out n, as does 4, which is equivalent. To see how you can use this in tricky ways, try the following in your REPL:
+
+1. (print (print))
+2. (print '(print))
+3. (def j [1 2 3])
+4. (print [j j j])
+5. (print ['j j j])
+6. (print ['j 'j 'j])
+7. (print '[j j j])
+
+Notice that 6 and 7 return the same thing. This is because they are equivalent. Putting a single quote at the beginning of the entire vector quotes everything in the vector, as does putting a single quote before each individual item. This will be important in a moment, because we're going to learn how to use it to import namespaces. Many of Clojure's string manipulations require importation of the Clojure string namespace. Before we learn to import it, however, let's learn about the two important string operations that can be done without it. Namely, indexing and string slicing.
+
+Indexing strings is done in much the same way as indexing vectors or lists. All three of these things - strings, vectors, and lists - are collections, and they all implement the collections class in Java, so the indexing function nth works on all of them. In the case of vectors and lists, the nth function returns whatever is at the nth index; if that thing is another vector, or another list, or a character or string or symbol, it is returned by the nth function. In the case of strings, however, nth always returns a character. Try the following in your Repl:
+
+(nth "Function" 0)
+(nth "Function" 7)
+(nth "Function" 4)
+
+You'll notice that these lines return, respectively, \F, \n, and \t. The nth function always returns a character when a string is the collection passed thereto.
+
+Now for string slicing! String slicing can be done in one of several ways. The string slicing we do with regular expressions will have to wait for a few chapters. However, if we want to slice a string into substrings just using indices, then we can use the subs function. To do this, we're going to define a symbol as a string, just for ease of typing.
+
+1. (def s "Live your life as though your every act were to become a universal law.")
+2. (subs s 25)
+3. (subs s 25 39)
+4. (subs s 0 15)
+5. (subs s 0)
+
+Notice that 2 and 5 both return the string from the first index to the end. Since 5 begins at 0, it returs the whole string. However, if a second argument is passed to the subs function, it adds a stopping point. This allows you to slice the string up any which-way you please.
+
+Now to import a namespace. Namespaces can be imported like so:
+
+(ns auto.the.bs
+(:require [clojure.string :as str])
+
+The structure of that is:
+
+(ns <whatever.namespace.you.want>
+(:require [clojure.<namespace> :as <something-short-and-easy-to-type>]))
+
+The <whatever.namespace.you.want> after ns carves out a namespace for your program. The :require keyword tells Clojure that your namespace requires whatever namespace is specified in the brackets. clojure.<namespace> is the namespace you're requiring. :as tells Clojure how you want to refer to that namespace from here on out (what you want to type to call functions from it), and <something-short-and-easy-to-type> is something you can type in place of the namespace's full name. Normally, we would have to call functions from clojure.string by typing clojure.string/<function>. But since we imported the whole thing as str, we can just type str/<function>.
+
+So now that we've imported a namespace, we can ask: what did we just do, exactly? The answer is that a namespace in Clojure works very similarly, for the purposes of writing code, to a module in Python. Importing the namespace gives you access to a library of functions defined in that namespace, and these functions do a lot of the stuff that you want to do with strings. This spares you the pain of re-inventing the wheel every time you want to see which character a string begins with or change a string to upper case, because those functions have been written for you, and they're included in the string namespace.
+
+For the rest of this chapter, I will assume that you have begun each REPL exercise by typing
+
+(ns auto.the.bs
+(:require '[clojure.string as string]))
+
+at the beginning. The first few REPL exercises, I will remind you by including a 0th step that tells you to import the namespace. Afterward, though, you'll need to just remember that all of these functions come from clojure.string. Remember that you can get a line break without triggering the REPL to read by holding down shift when you press return or enter.
+
+Our first function will be includes? which lets us find out if a string includes a substring. The process of using it is simple enough: we type out whatever imported the namespace as, following by a slash and then the function. We imported clojure.string as str, so we can call the function with (str/contains <string> <substring>).
+
+0.	(ns auto.the.bs
+	(:require [clojure.string :as str])
+
+1. (str/includes? "What?" "W")
+2. (str/includes? "What?" "?")
+3. (str/includes? "What?" "hat")
+4. (str/includes? "What?" "zebra")
+5. (str/includes? "What?" "w")
+6. (str/includes? "What?" "A")
+
+You will notice that 1 through 3 all return true, because W, ?, and hat are all substrigs of the string. However, 4 through 6 all return false, because there is no word "zebra" or lowercase w or uppercase A in the string. This is how you know that the str/includes? function is case-sensitive. This could shape up to be a problem. What if we wanted to know whether or not a string contains a letter w, capital or no? We could use the horribly clunky
+
+(or (str/includes? "What?" "W") (str/includes? "What?" "w"))
+
+But that is either idiomatic nor fun to use nor easy to read. This can be done with regular expressions, which we haven't learned yet, but there is an acceptable way to do so without them: simply use upper-case or lower-case. Try the following in your REPL:
+
+0.	(ns auto.the.bs
+	(:require [clojure.string :as str])
+1. (str/upper-case "What?")
+2. (str/lower-case "What?")
+3. (str/includes? (upper-case "What?") "W")
+4. (str/includes? (lower-case "What?") "w")
+
+1 returns the string trasformed to a rather alarmed-soundin upper case (WHAT?) while 2 returns a much more casual lower-case (what?). 3 and 4 both return true, because the string being checked for inclusion has been transformed. This is a down-and-dirty way to achieve case-insensitivity without regular expressions.
+
+To check if a string is all uppercase or all lowercase, we can use a number of methods. Studiously excluding methods involving importig Java methods or using regular expressions, we can simply use:
+
+0.	(ns auto.the.bs
+	(:require [clojure.string :as str]))
+1. (defn is-all-upper
+	[s]
+	(= s (str/upper-case s)))
+2. (is-all-upper "NOUMENA")
+3. (is-all-upper "phenomena")
+
+2 should return true and 3 should return false. An analogous function can e created using str/lower-case. I will leave this as an exercise to the reader.
+
+Next in line are starts-with and ends-with. These functions do exactly what they say on the tin: check if a given string begis or ends with a given substring. Try them out:
+
+0.	(ns auto.the.bs
+	(:require [clojure.string :as str]))
+1. (str/ends-with? "critique of pure reason" "reason")
+2. (str/starts-with? "immanuel kant" "immanuel")
+3. (str/ends-with? "time" "time")
+4. (str/starts-with? "time" "time")
+
+Notice that the substring can be any number of characters from one to the length of the whole string, and still return true. The string "time" technically does end with "time" if you define "end" as "has the same letters counting backward along the entire substring." Which is precisely what str/ends-with? does.
+
+Now for splitting strings! We can split strings using one of two functions. For strings with newlines, we can use str/split-lines. Try this:
+
+0.	(ns auto.the.bs
+	(:require [clojure.string :as str]))
+1. (def s "There once was a man from Nantucketn\nWho spent all his days in a bucket")
+2. (print s)
+3. (str/split-lines s)
+
+You will see that 2 prints out the first two lines of the limerick with a line break, while 3 returns both lines as separate items in a vector. This utility is extremely useful if you were, say, parsing a document with newline characters and needed to search each individual line for something in particular.
+
+We won't be learning regular expressions until later, but there is one regex-based line that you should learn, which is the str/split function. It has the structure, (str/split <string> <expression>). Try this:
+
+0.	(ns auto.the.bs
+	(:require [clojure.string :as str]))
+1. (def s "ABC")
+2. (str/split s #"")
+
+This should return a vector with "A" "B" and "C" as its items. So if you want to split a string into every single character, str/split is the way to do it. We'll learn later on what in the world that hashtag # symbol is for.
+
+
