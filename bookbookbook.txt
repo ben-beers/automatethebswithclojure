@@ -848,4 +848,141 @@ We won't be learning regular expressions until later, but there is one regex-bas
 
 This should return a vector with "A" "B" and "C" as its items. So if you want to split a string into every single character, str/split is the way to do it. We'll learn later on what in the world that hashtag # symbol is for.
 
+CHAPTER 7
 
+A regular expression is a way for us to tell the computer to find something in a text document for us. While using a word processor or web browser, you've probably used ctrl-f to look through documents and web pages to find words. Regular expressions are similar, but rather than demanding entire words, they only ask for patterns.
+
+There are lots of patterns for things you may want to find in a text document. If you want to look through text and find only those things that are formatted like an email address, you can use a regular expression to find <anything>@<anthing>.<anything>, and then look through all the strings in the editor that match that. You could also use this to fine phone numbers, by searching for any number formatted like this: xxx-xxx-xxxx.
+
+To demonstrate the power of regular expressions, let's create a program that searches a string for a phone number and returns that phone number. We'll start with a regex that just finds a digit in a string of letters, and then move on to the phone number regex. First, try this in your REPL:
+
+(re-find #"\d" "abcdefghij3klmnop")
+(re-find #"\d" "aaaa2bbbb")
+(re-find #\d" "5catbag")
+
+These functions, respectively, return 3, 2, and 5. So, how did Clojure know which one was the digit? As you can probably guess, it has to do with that weird string with the hashtag at the begining. That thing is our regular expression. The # tells Clojure that it's a regex and not just a regular string. The symbol, \d, means "any digit." That means the regular expression will hunt through the string, looking for a single digit, and return whatever digit it finds. Regexes can also be used to return a digit followed by a particular letter. Try these in your REPL:
+
+(re-find #"\dV" "ab2hdi3c5Vnnnk13")
+(re-find #"\d\d" "a2b3c5d7e11")
+(re-find #"nk\d" "asdf5544nk3pot")
+(re-find #"\d\d\d" "11a22b33c")
+
+You'll notice that the first function returns 5V. This is because the regex #"\dV" searches for the first digit in the string followed by a capital V. The second expression returns 11, because the regex #"\d\d" looks for two digits in a row, and the only place where that occurs in the string as at the very end, with 11. The third expression returns "nk3", because the regex #"nk\d" searches out the letters nk followed by a digit, which, in this string, is nk3. The fourth regex, #"\d\d\d", returns nil. Can you guess why? Because it's looking for three digits in a row, but there's no place in the string where that happens.
+
+It's time to hunt down phone numbers. Fire up your REPL and type in this:
+
+(defn find-phone
+	[text]
+	(re-find #"\d\d\d-\d\d\d-\d\d\d\d" text))
+
+Press enter to define the functio. We now have a function called "find-phone" which will pluck out anything formatted like a phone number and display it for us. Try running this:
+
+(find-phone "blah blah gurfa blurfa 235-711-1317")
+
+You will see that this returns the phone number 235-711-1317. So, how did it do that? You should be able to guess by now. IT's looking for a string composed of the following: three digits, a dash, three more digits, another dash, and then four digits. Now, this whole regex can be made much simpler using braces. The regular expression,
+
+#"\d\d\d-\d\d\d-\d\d\d\d"
+
+Is exactly equivalent to
+
+#"\d{3}-\d{3}-\d{4}
+
+This saves us a little time by allowing us to just enter a digit for how many digits we want. But wait - what if we have some phone numbers that are missing the dashes? There are a few different ways to tackle that issue and make sure we don't miss those numbers. This brings us to the really fascinating and powerful - and at the sime time, frustrating - features of regexes: there are multiple ways to do everything. This can be very interesting and powerful because it gives an adroit developer all kinds of options. At the same time, it can also be very frustrating and dangerous. Frustrating, because you can easily become paralyzed trying to find the optimal way to do something. And dangerous, because you can easily end up doing something in a suboptimal way; there are so many options that it's easy to pick a bad one.
+
+One way to correct our last regex to something that can detect phone numbers is to add an expression that detects just any 10 digit number. That would look like this:
+
+#"\d{10}"
+
+But now we fail to detect phone numbers formatted with dashes. Fortunately, we can correct this problem using the pipe, or vertical bar, as it's also called: |. The | operator is a logical "or," so #"a|b" detects a or b in a string. We can also create GROUPS within regular expressions using parentheses. Using both of these, we can find both kinds of phone numbers:
+
+#"(\d{3}-\d{3}-\d{4})|\d{9}"
+
+The parentheses turns the string of digits and parenthesis into one group, and the pipe operator says that this regex will return the first thing it finds that matches one of the expressions on either side. Clojure will go through the string and check each part of it to see if it matches either side of the pipe, and when it finds a match, that match will be returned. Let's put our new regex to work:
+
+(defn find-phone 
+	[text]
+	(re-find #"(\d{3}-\d{3}-\d{4})|\d{9}"))
+
+(find-phone "blah blah blah 9998887777")
+(find-phone "gurb jurb 711-131-7232")
+
+If done correctly, the find-phone function should return both phone numbers here.
+
+Let's try something a little different. Let's say we have a huge mass of digits, but somewhere, there's a non-digit. It might be a slash, dash, letter, or plus sign, an asterisk, anything. To find that non-digit, we simple use the \D operator, which will find us anything that is NOT a digit. Try this:
+
+(re-find #"\D" "12345*9857")
+(re-find #"\D" "0987F32321")
+
+These two will give us, respectively, * and F, because those two are the non-digit characters. So, \d gives us digits and \D gives us everything EXCEPT digits. \w gives us all alphanumeric characters (all letters and all digits) while \W gives us only non-alphanumerics, such as symbols. Try these:
+
+(re-find #"\w" "&&$x$")
+(re-find #"\W" "abc@123")
+
+Continuing the include/exclude theme, \s grants any whitespace, i.e. any space or tab, while \S gives us any non-whitespace, meaning anything that ISN'T  space or tab. Try these:
+
+(re-find #"\s" "abc def")
+(re-find #"\S" " k ")
+
+Let's return to our old friend, the braces. We know that #"V" returns the first occurence of the letter V. And we know that #"V"{2} returns the first place where V occurs twice in a row. But what if we did this: #"V"{2,3}? This would return any place where V occurs two or three times in a row:
+
+(re-find #"V"{2,3} "cdVVV")
+(re-find #"V{2,3}" "VVVabcVV")
+(re-find #"V{2,3}" "VVabcVVV")
+
+You'll notice that that second string contains both a group of 3 V's, and a group of 2 V's, i.e. VV and VVV. The regex returns VVV. Meanwhile, the third regex returns VV. The third regex returns VV because the string of two V's is the first matching string the regex finds, so it never goes all the way and matches the VVV at the end.
+
+The astute reader will notice that, because the second line contains a string that begins with three Vs, the regex should, by rights, return two Vs. Obviously, every string of three Vs also contains two Vs. Every VVV is just a VV plus another V. So, why does Clojure return VVV instead of VV? Why do we get VVV for:
+
+(re-find #"V{2,3}" "VVV")
+
+Whe it could just as easily return VV? The answer is that regular expressions in Clojure, by default, are GREEDY. When #"VVV" encounters a string of digits VVV, it returs the entire match. IT won't return VV, because VV in this case is a substring of VVV, so the GREEDY regex returns VVV. If, however, we do this:
+
+(re-find "V{2,3} "VVabcVVV")
+
+then we see that VV is returned, because that's the first match the regular expression runs into. If this is all confusing, think of it this way: a regex's first priority is to return whatever match it finds first. But a greedy regex's secod priority is to return the largest string it can, while a non-greedy regex's priority is to return the shortest string it can.
+
+If we omit the second number in the curly braces, we can give the regex a lower bound, but no upper bound. Try these:
+
+(re-find #"V{1,}" "abcdeVVV")
+(re-find #"V{3,}" "aVaVVaVVVaVVVVVV")
+(re-find #"V{2,}" "V")
+(re-find #"\d{0,}" "012")
+(re-find #"\d{0,}" "0123456789")
+(re-find #"\d{3,}" "0123456789")
+(re-find #"\d{5,}" "0123")
+
+
+Notice how this operator works. By only specifying a lower bound, we can only match strings of a certain length or greater.
+
+Another important tool is the class. A set of braces {} can create a delimeter for us, and a set of parens () can enclose a statement for us to create a group. But we can also use brackets [] to create a class. Classes can contain many different things. For eample, we can search only for lowercase letters like so:
+
+(re-find #"[a-z]" "1234k")
+
+This will return the k because a-z specifies only the lowercase letters, a to z. We can also, if we so choose, limit this, e.g. to between a and g by typing #"[a-g]". We can also use ranges of numbers #"[0-9]" which is equivalent to \d. We can even mix and match to find, say, capital letters or numbers between 3 and 6: #"[A-Z3-6]".
+
+The problem with classes, as we've defined them, is that they only match once. We can say, [B-De-g0-3] to match any of the following: BCDefg0123. But it would only match once, and return a single character, instead of matching a whole string. Obviously, we want to do a lot more with our regexes than just check for single characters! So let's use some quantifiers.
+
+We've found one quantifier in the form of {a,b}, and indeed, that quantifier works with classes:
+
+(re-find #"[B-De-g0-3]{1,}" "abcdEF4BDfe320xxxxx")
+=> "BDfe320"
+
+(re-find #"[B-De-g0-3]{3,4}" "abcdEF4BDfe320xxxxx")
+=> "BDfe"
+
+But there are other quantifiers we can use. Namely, the * quantifier, which matches any string where the quantified pattern occurs zero or more times, and +, which matches any string where the quantified pattern occurs one or more times. so #"[a-c]*" matches any string where the letters a,b, or c occur in some combination any number of times. Try this in your REPL:
+
+(re-find #"[a-c]+" "aa")
+(re-find #"[a-c]*" "aaa")
+(re-find #"[a-c]+" "aaaaa")
+(re-find #"[a-c]*" "aaaaabbbccc")
+(re-find #"[a-c]+" "ddd")
+(re-find #"[a-c]*" "ddd")
+
+The astute reader will notice that, of the final two expressions, the penultimate one returns nil, while the ultimate one returns "". This is a very important difference! "" is, after all, a string, even if an empty one, while nil is just nothing. You can, for example, run the final expression on a string with no match, and conjoin the result to some other string, and get a string back. But if you tried this with the second-to-last expression, you would get an error, because while an empty string can be conjoined to another string, nil cannot.
+
+The period . matches anything. The period followed by an asterisk #".*" matches anything and everything, the entire string, no matter what it is... unless it's a newline. A newline character is the only thing this expression will not swallow.
+
+Classes have another important property, which is that we can attach a caret ^ to the inside of a class to exclude whatever is in the class and search only for those things NOT in the class. So while [0-9] is equivalent to \d, [^0-9] is equivalent to \D. This can be used with any class: [^b-f] will find any character in the string besides b, c, d, e, and f. 
+
+Finally, we have so far been matching our regular expression to any text in the line. It is possible to anchor regular expressions, or groups withing regular expressions, to the beginning of a line, or to the end of one. To anchor a regular expression to the beginning, we use a caret ^ outside of brackets. ^abc[.*]
