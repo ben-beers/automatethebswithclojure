@@ -331,7 +331,7 @@ You can mix boolean and comparison operators because comparison operators return
 You'll notice that this returns true. The reason is that the comparison operators in the inmost parentheses are evaluated first:
 
 (not (or (and (= 1 0) (>= 11 7)) (not= 5 5)))		|The original expression
-(not (or (and false (>= 11 7)) (not= 5 5)))		|(= 1 0) is false
+(not (or (and false (>= 11 7)) (not= 5 5)))		|(= 1 0) is falsHA
 (not (or (and false true) (not= 5 5)))			|(>= 11 7) is true
 (not (or (and false true) false))			|(not= 5 5) is false
 (not (or false false))					|(and false true) is false
@@ -850,7 +850,7 @@ This should return a vector with "A" "B" and "C" as its items. So if you want to
 
 CHAPTER 7
 
-A regular expression is a way for us to tell the computer to find something in a text document for us. While using a word processor or web browser, you've probably used ctrl-f to look through documents and web pages to find words. Regular expressions are similar, but rather than demanding entire words, they only ask for patterns.
+A regular expression is a way for us to tell the computer to find something in a text document for us. While using a word processor or web browser, you've probably used ctrl-f to look through documents and web pages to find words. Regular expressions are similar, but rather than demanding entire words, they only ask for patterns. It is nearly impossible to overstate the value of regular expressions. Since most of the data you deal with while developins either is, or can be represented as, text, the ability to do sophisticated pattern-matching is key to working quickly and efficiently with data.
 
 There are lots of patterns for things you may want to find in a text document. If you want to look through text and find only those things that are formatted like an email address, you can use a regular expression to find <anything>@<anthing>.<anything>, and then look through all the strings in the editor that match that. You could also use this to fine phone numbers, by searching for any number formatted like this: xxx-xxx-xxxx.
 
@@ -986,3 +986,7 @@ The period . matches anything. The period followed by an asterisk #".*" matches 
 Classes have another important property, which is that we can attach a caret ^ to the inside of a class to exclude whatever is in the class and search only for those things NOT in the class. So while [0-9] is equivalent to \d, [^0-9] is equivalent to \D. This can be used with any class: [^b-f] will find any character in the string besides b, c, d, e, and f. 
 
 Finally, we have so far been matching our regular expression to any text in the line. It is possible to anchor regular expressions, or groups withing regular expressions, to the beginning of a line, or to the end of one. To anchor a regular expression to the beginning, we use a caret ^ outside of brackets. ^abc[.*]
+
+After reading this chapter, it probably occurred to you that patterns can be matched in multiple ways. When is it right, for example, to use .* in a regex rather than, say, [^\s]{10}? The answer - which is a general principle of writing regexes - is that, all things being equal, the more long and complex the regex is, the better. The reasoning here is that regexes expend much more time computing strings they do NOT match than the ones they DO match. The nitty-gritty of regex processing varies between implementations, but the general gist is this: a more specific regex is more predictive. It can more quickly recognize when the text it is processing does not match, and this significantly reduces processing time. It may FEEL as though you're being concise when you write a compact regex of only a few characters that matches the strings you want, but you can speed up your processing by orders of magnitude if you write specific regexes. Processing power should be our first concern whenever we think that our regex will, or may, be used to process large amounts of data. If computing power is not a concern (or if we're choosing between two regexes with similar resource consumption) then our next concern is readability. If we are searching through a textfile for an email address, and we need a quick regex that will only be searching relatively small files, we'll try to keep it readable.
+
+
