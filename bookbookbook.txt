@@ -989,4 +989,52 @@ Finally, we have so far been matching our regular expression to any text in the 
 
 After reading this chapter, it probably occurred to you that patterns can be matched in multiple ways. When is it right, for example, to use .* in a regex rather than, say, [^\s]{10}? The answer - which is a general principle of writing regexes - is that, all things being equal, the more long and complex the regex is, the better. The reasoning here is that regexes expend much more time computing strings they do NOT match than the ones they DO match. The nitty-gritty of regex processing varies between implementations, but the general gist is this: a more specific regex is more predictive. It can more quickly recognize when the text it is processing does not match, and this significantly reduces processing time. It may FEEL as though you're being concise when you write a compact regex of only a few characters that matches the strings you want, but you can speed up your processing by orders of magnitude if you write specific regexes. Processing power should be our first concern whenever we think that our regex will, or may, be used to process large amounts of data. If computing power is not a concern (or if we're choosing between two regexes with similar resource consumption) then our next concern is readability. If we are searching through a textfile for an email address, and we need a quick regex that will only be searching relatively small files, we'll try to keep it readable.
 
+CHAPTER 8
+
+Input validation may not be the first thing you conceive of when you're excitedly planning a new app or project in your head, but it has to be done for most programs of any complexity. The reason is that you have no control over what the user will input into the program, so you have to make sure that the input is right so that the program does not crash. Even worse, failure to validate (or 'sanitize') user inputs can lead to problems:
+
+(panel showing table-dropping SQL attack xkcd comic)
+
+So let's begin by revisiting user input. User input in the command line in Clojure is typically taken using the read-line function. To test this out, try using the following code, which will simply echo whatever you type at the prompt:
+
+(print (read-line))
+
+Unlike certain other high level languages, Clojure does not have a dedicated library for user input validation at the time of this writing. So, in order to accomplish user input validation, we're going to write our own functions. Try this in your REPL:
+
+(let [x (read-line)]
+	(print x))
+
+This does exactly what the previous expression did, with one vital difference: now that we've assigned a name to the user input, we can easily operate on it. We'll begin with arithmetic operations. However, even that basic attempt will hit a snare when we try the following:
+
+(let [x (read-lie)]
+	(+ x 1))
+
+That throws an error because the user input becomes a string, which makes x a string. Oops! Recalling that Clojure runs on the JVM, we have access to everything that Java developers do. Therefore, we can use the Integer/parseInt functionality from Java. Try these in your REPL to see it in action:
+
+1. (type "3")
+2. (Integer/parseInt "3")
+3. (type (Integer/parseInt "3"))
+
+You'll notice that Integer/parseInt takes the string and converts it to an integer. This allows us to take user input and do arithmetic with it:
+
+(let [x (read-line)]
+	(+ (Integer/parseInt x) 1))
+
+Now, go ahead and use emacs to open a file called validateinput.clj and write this in it:
+
+1	(println "Enter your age.")
+
+2	(defn get-age [flag]
+3		(if flag (println "No, enter your REAL age."))
+4		(let [x (Integer/parseInt (read-line))]
+5		(cond
+6                	(<= x 0) (get-age true)
+7                	(> x  0) (print "In one year, you will be " (+ x 1)))))
+
+8	(get-age false)
+
+This is a bit more complex than mest of the programs and scripts we've written in this book thus far, so let's go through it line by line. Line 1 prints out "Enter your age." to prompt the user so they know that they are being asked to type omething. Line 2 defines a function called get-age with a single boolean parameter called flag. When we first call this function, we will pass false to it as an argument to avoid triggering line 3. Line 4 uses the let keyword to feed user input into the Integer/parseInt function, and then x is allowed to stand for whatever integer comes from that. Line 5 is the cond flow control, so we know one of two conditions will execute. Line 6 triggers if the person 0 or any number less than 0.
+
+Line 6 introduces recursion into the program, because it's the line where the function calls itself. Because of how we wrote the flow control logic, using the cond statement, the function will terminate by calling itself. Since flag is set to true, the code on line 3 triggers and says, "No, enter your REAL age." This is because the user entered an age of 0 or less. If the user does so again, the function will simply call itself again with flag set to true, and repeatedly ask for the user's real age until they type a positive number. This triggers the condition on line 7, which prints out how old the user will be next year. The loop terminates because this condition does not involve the function calling itself.
+
 
