@@ -1023,18 +1023,121 @@ You'll notice that Integer/parseInt takes the string and converts it to an integ
 Now, go ahead and use emacs to open a file called validateinput.clj and write this in it:
 
 1	(println "Enter your age.")
-
 2	(defn get-age [flag]
 3		(if flag (println "No, enter your REAL age."))
 4		(let [x (Integer/parseInt (read-line))]
 5		(cond
 6                	(<= x 0) (get-age true)
 7                	(> x  0) (print "In one year, you will be " (+ x 1)))))
-
 8	(get-age false)
 
 This is a bit more complex than mest of the programs and scripts we've written in this book thus far, so let's go through it line by line. Line 1 prints out "Enter your age." to prompt the user so they know that they are being asked to type omething. Line 2 defines a function called get-age with a single boolean parameter called flag. When we first call this function, we will pass false to it as an argument to avoid triggering line 3. Line 4 uses the let keyword to feed user input into the Integer/parseInt function, and then x is allowed to stand for whatever integer comes from that. Line 5 is the cond flow control, so we know one of two conditions will execute. Line 6 triggers if the person 0 or any number less than 0.
 
 Line 6 introduces recursion into the program, because it's the line where the function calls itself. Because of how we wrote the flow control logic, using the cond statement, the function will terminate by calling itself. Since flag is set to true, the code on line 3 triggers and says, "No, enter your REAL age." This is because the user entered an age of 0 or less. If the user does so again, the function will simply call itself again with flag set to true, and repeatedly ask for the user's real age until they type a positive number. This triggers the condition on line 7, which prints out how old the user will be next year. The loop terminates because this condition does not involve the function calling itself.
 
+So far we've learned how to make sure that user input is falls within a certain range, and do arithmetic tests on it. You could just as easily use the tests above with the even? or odd? functions, or any of the other arithmetic predicates. There are a few other tasks to handle, including the treatment of blank inputs, but first, I want to say another word about recursion.
+
+The function I just showed you is not idiomatic. It's not WRONG, per se, since it does work and it will do what it's supposed to do. But there are better ways to use recursion, most notably with recur. I wrote that first function the way I did because it was easier to understand than doing it idiomatically. The idiomatic way, however, is this:
+
+1	(defn get-age [flag]
+2	    (if flag
+3	      (println "No, enter your REAL age.")
+4	      (println "Enter your age!"))  
+5 	    (let [x (Integer/parseInt (read-line))]
+6        	(cond
+7          		(<= x 0) (recur true)
+8          		(> x  0) (print "In one year, you will be " (+ x 1)))))
+
+This function does exactly what the previous one does, with a vital difference. The first function I showed you calls itself explicitly (get-age true) which means that the computer has to hold the function in memory every time it makes a new nested call. If you type 0 many times in a row, you will eventually get a stack overflow error. The nice thing about the recur keyword is that it allows you to accomplish recursion without consuming the stack. When you give it the recur keyword, Clojure will evaluate the entire function, and then re-execute using whatever arguments are passed to recur, without holding anything on the stack.
+
+Returning to input validation, it ultimately comes down to what you can reasonably expect from your user. Ordinary people are not computers and will make typos, type the wrong thing in the wrong field, type spaces between numbers, hit the enter key without typing anything, and make a whole host of other mistakes. Instead of trying to anticipate literally every single wrong input we might receive - which would just paralyze us and keep us from ever writing any code - it makes more sense to deal with specific mistakes that we know to be common. Accordingly, instead of asking ourselves, "What are all the different things that can be passed to this function?" it makes more sense, at this stage, to ask, "What are the mistakes that a human user could make while using this?"
+
+One example is blank input. How could we re-write the function above to deal with blank input? Well, when a user hits enter without typing anything in response to the read-line function, the value that the string would be assigned to is assigned an empty string rather than nil. So if a function contains (let [x (read-line)] (print x)) and the user hits enter without typing anything, x will be set to "", not nil. So if we want to account for the possibility that the user could just tap enter without typing anything, we can use the following function:
+
+1	(defn get-age [flag]
+2		(if flag
+3			(println "No, enter your REAL age.")
+4			(println "Enter your age!"))   
+5		(let [x (read-line)]
+6			(cond
+7			(= x "") (recur false)
+8			(<= (Integer/parseInt x) 0) (recur true)
+9			(> (Integer/parseInt x)  0) (print "In one year, you will be " (+ (Integer/parseInt x) 1)))))
+
+
+You'll notice that the Integer/ParseInt has been removed from its former place on line 5 and iserted into lines 8 and 9. This is because Integer/ParseInt throws an error when passed an empty string. So we allow x to just be the raw read-line input, test that to see if it's an empty string, and then convert it into an integer on an as-needed basis.
+
+The next thing to learn is using limited tries. Perhaps we want to stop our user from entering anything if they fail to enter a valid input a certain number of times. You see this a lot on the internet where you can be locked out of an account for a certain length of time if you enter the wrong password too many times. Naturally, we want to take care of this by adding a counter:
+
+1	(defn get-age [flag cnt]
+2 	  (if flag
+3	     (println "No, enter your REAL age.")
+4     	     (println "Enter your age!"))
+5       	(let [x (read-line)]
+6       	(cond
+7         		(>= cnt 10) "Limit exceeded."
+8         		(= x "") (recur false (inc cnt))
+9         		(<= (Integer/parseInt x) 0) (recur true (inc cnt))
+10        		(> (Integer/parseInt x)  0) (print "In one year, you will be " (+ (Integer/parseInt x) 1)))))
+
+This adds a clause to the cond statement. Remember that only one condition can be triggerted in the cond statement, and that whichever one is triggered first ends the statement. The very first thing our cond statemnt checks is the value of cnt (count). If that is equal to or greater than ten, then the function terminates by returnig "Limit exceeded." Note that "Limit exceeded." is an implicit return. You will notice that, on lines 8 and 9, a recur statement occurs always at a place were the function would normally return a value. A recur value in that spot is said to be in "tail position," and such recursion is called "tail recursion."
+
+CHAPTER 9 - READING AND WRITING FILES
+
+Code is data in Clojure, because, as mentioned previously, the language is homoiconic, but we want to be able to store and read data. One way we can do this is by reading and writing from text files. The vast majority of the data you work with is in some kind of text format, so a software dev who is learning a new language shuold anticipate that at some point they will need to learn to read from and write to text files. To write to a text file, consider the following function:
+
+0	(use 'clojure.java.io)
+1	(defn write-to
+2		[file text]
+3		(with-open [wrtr (writer file)]
+4			(.write wrtr text)))
+
+Line 1 defines a function named write-to, and line 2 gives it two parameters: file and text. with-open is a function within Clojure.core that takes a vector and a body. The vector is the inside of the brackets on line 3: [wrtr (writer file)]. Let's dissect line 3 inside out. First of all, the innermost layer of parentheses is inside of (writer file), which takes whatever argument was passed to the file parameter and passes it to writer. This coerces it to a java.io.Writer object. This is what opens the file for the program to write to. So the (writer file) returns file, coerced into an open java.io.Writer object, and with-open binds it to the name "wrtr".
+
+Finally, we come to line 4, where we have (.write wrtr text). There are a few things going on here that we have not seen before, so let's unpack them one at a time.
+
+In the first place, calling the name of a function after a dot allows us to invoke functions from the Java libraries. This is a case of Java interoperation, or interop for short. In this case, we're importing java.io, which gives us access to the write function. We can call the write function using a dot followed by any arguments to the function, e.g. (.write wrtr text), which calls the write function and writes text to whatever java.io.Writer object is presently symbolized by wrtr.
+
+Java interop has other uses as well, of course. For example, you can call the toUpperCase function from the string module, like so:
+
+(.toUpperCase "text")
+=> "TEXT"
+
+In general, if a method is in a namespace that the present program has access to, and we want to call that method and pass an object to it, then we can use this syntax:
+
+(.function object)
+
+where we replace "function" with the function we wish to call and object with the argument(s) being passed to the function. We may also use:
+
+(. object function)
+
+For reading from files, we want to incorporate exception handling because it is very easy to try and read something, come back with null, and throw a monkey wrench into the whole process. Accordingly, we can write our next function like so:
+
+0	(use 'clojure.java.io)
+1	(defn read-from
+2		[file]
+3		(try
+4			(println slurp file)
+5		(catch exception e (println "Error: " (.getMessage e)))))
+
+Breaking this one down line by line, we see that line 0 is the statement that gives us access to the clojure.java.io library. Line 1 is the function definition and Line 2 defines the parameter vector. Line 3 is a try statement: the function will attempt to read the contents of the file and print them out (yes, the command to read the contents of a text file really is "slurp"). If the function can successfully read from the text file, it will print the contents thereof. If not, the it will print "Error: " followed by the contents of the error message. Of course, if we want to simply return the contents of the file - say, to another function that handles them - then we would just delete println from Line 4 and have:
+
+0	(use 'clojure.java.io)
+1	(defn read-from
+2		[file]
+3		(try
+4			(slurp file)
+5		(catch exception e (println "Error: " (.getMessage e)))))
+
+We could then write (println (read-from file)) in order to get the same result. In truth, the first example is merely illustrative. It makes much more sense to write a function that returns the contents of a file and then pass those contents to whatever function you want to use them, which would include the println function if that's what you wanted to do. This is a matter of simply not coupling one's tools too tightly.
+
+If we want to append a line of text to a file, we use the following function:
+
+0	(use 'clojure.java.io)
+1	(defn append-to
+2		[file text]
+3		(with-open [wrtr (writer file :append true)]
+4			(.write wrtr text)))
+
+This creates a new line in the textfile, designated by a string passed as argument to the file parameter. It then writes the text passed as a string to the text parameter to that file.
 
